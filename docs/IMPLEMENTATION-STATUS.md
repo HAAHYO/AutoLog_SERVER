@@ -11,7 +11,7 @@
 | JPA Auditing + `BaseTimeEntity` | `global/config`, `global/entity` | `createdAt`, `updatedAt` (`Instant`, UTC) |
 | 공통 예외 처리 | `global/exception` | `ErrorCode`, `BusinessException`, `ErrorResponse`, `GlobalExceptionHandler` |
 | 헬스 체크 | `GET /actuator/health` | |
-| 테스트 | 41개: 적용환율·반올림·계좌·TxGroup 단위 테스트, 원장 전기·대사 `@DataJpaTest`, `BaseTimeEntityTest` | 통합 테스트는 H2 기준 |
+| 테스트 | 51개: 적용환율·반올림·계좌·TxGroup 단위 테스트, 원장 전기·대사 `@DataJpaTest`, `BaseTimeEntityTest` | 통합 테스트는 H2 기준 |
 | 원장 핵심 | `global/money`, `domain/account`, `domain/ledger`, `domain/rate/service/AppliedRateCalculator` | HTTP 엔드포인트 없음 (서비스 계층까지) |
 | CI | `.github/workflows/ci.yml` | develop·main 대상 PR과 푸시 시 `./gradlew build` |
 | 하네스 | `AGENTS.md`, `CLAUDE.md`, `.claude/` | |
@@ -29,7 +29,7 @@
 | ① | `fx-rate-topic` 발행/구독 → Redis 최신 시세 | 미구현 | Kafka, Redis |
 | ① | SSE 시세 스트림 | 미구현 | ① 시세 구독 |
 | ② | `accounts` (다통화 지갑, `@Version`) | **구현** (엔티티·리포지토리. 계좌 개설 API 없음) | — |
-| ② | `ledger_entries` (tx_group, 통화별 균형 검증, balance_after) + 시스템 계정 | **구현** (`TxGroup`, `LedgerService.post`) | 시스템 계좌 시드는 `feat/exchange` |
+| ② | `ledger_entries` (tx_group, 통화별 균형 검증, balance_after) + 시스템 계정 | **구현** (`TxGroup`, `LedgerService.post`, 헤더 `ledger_tx_groups`) | 시스템 계좌 시드는 `feat/exchange` |
 | ② | 적용환율 계산 (스프레드, 우대율) | **구현** (`AppliedRateCalculator`, `FxRoundingPolicy`) | — |
 | ② | 충전 (모의) | 미구현 | Q9 |
 | ② | 즉시 환전 (MARKET) | 미구현 | accounts, ledger, 적용환율, 멱등성 키 |
@@ -92,4 +92,4 @@ Kafka와 Redis 없이도 검증할 수 있는 **원장 핵심**부터 쌓고, �
 | 5 | H2로 테스트 | MySQL 락, DECIMAL, `DATETIME(6)` 미검증 | 5단계에서 Testcontainers(MySQL, Redis, Kafka) 도입 |
 | 6 (#13) | 금액 JSON 직렬화 방식 미결정 (REST) | JS 대시보드에서 정밀도 손실 가능 | 첫 금액 API를 만들 때 결정 (Kafka 메시지는 문자열로 확정) |
 | 7 | Spring Security 없음 | 모든 엔드포인트가 공개 상태 | 인증 방식이 결정되면 도입 (Q8). 그 전에는 userId를 요청 파라미터나 헤더로 대신 받음 |
-| 8 | 시스템 계좌의 중복을 DB가 막지 못함. 유니크 제약 `(user_id, currency, type)`에서 시스템 계좌는 `user_id`가 NULL이고, MySQL은 NULL을 서로 다른 값으로 취급함 | 같은 종류·통화의 시스템 계좌가 여러 개 생기면 수익·포지션이 나뉘어 기록됨 | `feat/exchange`에서 시스템 계좌 시드를 만들 때, 시스템 계좌 전용 키 컬럼 또는 고정 시드 + 시작 시 검증으로 해결 |
+| 8 | ~~시스템 계좌의 중복을 DB가 막지 못함~~ → **`owner_key` 유니크 제약으로 해결 (2026-11-25)** | — | — |
