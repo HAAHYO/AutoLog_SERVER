@@ -131,6 +131,7 @@ com.autolog.server
    이름 변경이나 타입 변경은 "완료"로 보고하지 말고, 필요한 수동 SQL을 정리해 사용자에게 알리세요.
 5. **목록 조회의 N+1** — 응답 DTO가 LAZY 연관을 읽는다면 리포지토리에서 `JOIN FETCH`나 `@EntityGraph`로 해결합니다. EAGER로 바꿔서 해결하면 안 됩니다.
 6. **H2와 MySQL의 차이** — 위 "검증" 절을 참고하세요.
+7. **Kafka와 Redis는 로컬에 없습니다** — 도입하기 전까지 관련 코드는 정적 검증만 가능합니다. 도입한 뒤에는 Docker Compose나 Testcontainers로 확인하고, 확인하지 못했다면 "Kafka/Redis 통합 미검증"으로 보고합니다.
 
 ## Git 워크플로 (개인 프로젝트용)
 
