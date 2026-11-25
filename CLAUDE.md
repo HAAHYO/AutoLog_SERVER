@@ -74,3 +74,6 @@
 | 2026-11-25 | 최초 구축: 에이전트 3개, 스킬 8개, docs, CI, PR 템플릿 | 전체 | TaekBaeWatShong 하네스를 개인 프로젝트·Java·금융 도메인에 맞게 조정 |
 | 2026-11-25 | 기획 반영: `kafka-redis-pipeline` 스킬 추가, 원장 모델을 accounts/ledger_entries로 변경, QA 체크 9 추가 | docs, skills, agents | 사용자 기획서(Kafka, Redis ZSet, Redisson, 멱등성 키, DLQ, 스프레드·우대율)를 받음 |
 | 2026-11-25 | 브랜치 전략을 GitHub Flow에서 main + develop으로 변경 (기능 PR base = develop) | git·PR 스킬, AGENTS, CI | 사용자 요청. 나중에 main을 배포 대상으로 쓰기 위해 |
+| 2026-11-25 | 브랜치·PR 단위를 큰 기능 묶음으로 변경, 브랜치 계획 추가 | git·PR 스킬, AGENTS, 오케스트레이터, 구현 현황 | 사용자 요청. 작은 작업마다 브랜치를 만드니 너무 잘게 쪼개짐 |
+| 2026-11-25 | `pr-self-review` 스킬 추가, PR 템플릿에 셀프 리뷰 섹션 추가 | skills, PR 템플릿, AGENTS | 사용자 요청: PR 만든 뒤 스스로 리뷰하고 반영 |
+| 2026-11-25 | 도메인 패키지 뼈대 생성 (기능별 패키지 구조) | `domain/` | 사용자 요청: 참고 레포처럼 기능 아래 controller/entity 등 계층 배치 |
