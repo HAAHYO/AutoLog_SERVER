@@ -41,7 +41,7 @@ BigDecimal payout = usd.setScale(CurrencyCode.USD.getScale(), RoundingMode.DOWN)
 
 - 중간 계산은 높은 scale로 하고, **최종 금액에서 한 번만** 반올림합니다.
 - **반올림 방향은 정책 클래스 한곳에 모읍니다**(예: `FxRoundingPolicy`). 원칙은 "고객이 받는 금액은 내림, 고객이 내는 금액은 올림"(가정, 결정 기록 참고)입니다. 코드 곳곳에 `HALF_UP`을 흩어 두지 않습니다.
-- 반올림 때문에 생기는 단수 차이는 원장에 흔적을 남깁니다. Q2-B를 택했다면 스프레드 수익 계정에 넣습니다. 반올림 차이가 흔적 없이 사라지면 대사가 맞지 않습니다.
+- 반올림 때문에 생기는 단수 차이는 원장에 흔적을 남깁니다. 스프레드 수익 계정에 넣습니다. 반올림 차이가 흔적 없이 사라지면 대사가 맞지 않습니다.
 - `BigDecimal`을 `HashMap`이나 `HashSet`의 키로 쓰지 않습니다. `equals`와 `hashCode`가 scale을 포함하기 때문입니다.
 - 테스트에서 금액을 비교할 때는 `isEqualByComparingTo`를 씁니다(AssertJ). DB에서 읽은 값은 scale이 4입니다.
 
@@ -76,13 +76,11 @@ BigDecimal payout = usd.setScale(CurrencyCode.USD.getScale(), RoundingMode.DOWN)
 1. **amount는 항상 0보다 큽니다.** 방향은 `entry_type`(DEBIT/CREDIT)으로 표현합니다.
 2. **balance_after는 직전 잔액에 이 엔트리를 반영한 값과 같아야 합니다.** 잔액을 변경하는 바로 그 시점에 계산해 넣습니다. 따로 다시 조회해서 계산하면 동시성 때문에 틀릴 수 있습니다.
 3. **append-only**: `LedgerEntry`에는 setter도 변경 메서드도 없습니다. 리포지토리에서 delete를 호출하지 않습니다. 정정은 **역분개**(반대 방향의 새 tx_group, `reference`로 원본을 가리킴)로 합니다.
-4. **차대 균형** — 원장 모델(PRODUCT Q2)에 따라 달라집니다.
-   - **(A) 원안: 사용자 계좌 쌍**
-     - 통화가 다르므로 금액 합계로는 검증할 수 없습니다.
-     - 대신 `KRW 출금액 = 외화 입금액 × 적용환율`(반올림 정책 범위 안에서)을 검증합니다.
-   - **(B) 권장: 시스템 계정 포함**
-     - tx_group 안에서 **통화별로 Σ DEBIT = Σ CREDIT**을 정확히(`compareTo == 0`) 검증합니다.
-     - 스프레드와 반올림 차이는 시스템 수익 계정으로 갑니다.
+4. **차대 균형** — 원장 모델 B(시스템 계정 포함)로 결정했습니다(PRODUCT Q2).
+   - tx_group 안에서 **통화별로 Σ DEBIT = Σ CREDIT**을 정확히(`compareTo == 0`) 검증합니다. 허용 오차는 두지 않습니다.
+   - 환전 1건의 구성: 사용자 출금 계좌, 시스템 FX 포지션(출금 통화), 시스템 스프레드 수익(출금 통화), 시스템 FX 포지션(입금 통화), 사용자 입금 계좌. 예시는 `docs/DOMAIN-MODEL.md`에 있습니다.
+   - 스프레드와 반올림 차이는 시스템 스프레드 수익 계정으로 갑니다.
+   - 시스템 계정의 잔액은 `accounts.balance`에 캐시하지 않고 원장 합계로만 관리하는 것을 기본으로 합니다. 모든 체결이 같은 시스템 계정 행을 갱신하면 락 경합이 생기기 때문입니다.
    - 검증에 실패하면 버그이므로 `LEDGER_UNBALANCED`(500)를 던지고 error 로그를 남깁니다.
 5. **멱등**: 같은 주문(또는 회차)의 체결이 두 번 기록되지 않도록, 원장이나 주문 쪽 자연키에 **DB UNIQUE 제약**을 겁니다. 예: `fx_orders.tx_group_id`, `(order_id, tranche_no)`
 
@@ -90,7 +88,7 @@ BigDecimal payout = usd.setScale(CurrencyCode.USD.getScale(), RoundingMode.DOWN)
 
 - 진실의 원천은 ledger_entries입니다. `accounts.balance`는 캐시입니다.
 - 대사 쿼리를 둡니다. 계좌마다 `Σ(입금) − Σ(출금)`이 `accounts.balance`와 같아야 하고, 마지막 엔트리의 `balance_after`와도 같아야 합니다. 이 쿼리를 테스트나 관리 API로 실행할 수 있게 하는 것이 이 프로젝트의 어필 포인트입니다.
-- Q2-B라면 추가로 "통화별로 전체 원장의 Σ DEBIT = Σ CREDIT"이어야 합니다.
+- 추가로 "통화별로 전체 원장의 Σ DEBIT = Σ CREDIT"이어야 합니다.
 - **잔액 부족 검사와 차감은 같은 락 범위 안에서** 합니다. 락은 `kafka-redis-pipeline`의 분산 락과 `@Version`을 씁니다.
 
 ## 5. 주문 상태 전이
@@ -133,7 +131,7 @@ LIMIT:  PENDING → COMPLETED | FAILED (| CANCELLED | EXPIRED — Q5)
 |------|------|------|
 | 금액 scale | 4 (기획 원안 `DECIMAL(19,4)`) | 2026-11-25 |
 | 환율 / 스프레드율 scale | 미결정 (초안 8 / 6) | |
-| 원장 모델 (A 쌍 / B 시스템 계정) | 미결정 — B 권장 (Q2) | |
+| 원장 모델 | **B** — 시스템 계정 포함, tx_group 안에서 통화별 차대 균형 (Q2) | 2026-11-25 |
 | DEBIT/CREDIT 부호 관례 | 미결정 — 원안은 "사용자 계좌 DEBIT = 출금" | |
 | 반올림 정책 | 미결정 — 가정: 고객이 받는 금액은 내림, 내는 금액은 올림 | |
 | 지정가 비교 기준 (기준율 / 적용환율) | 미결정 — 가정: 적용환율 | |

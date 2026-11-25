@@ -35,7 +35,7 @@
 
 필요하면 의존성 추가를 **제안**하세요. 없는 라이브러리를 전제로 코드를 쓰면 안 됩니다.
 
-> **Boot 버전 미결정 (PRODUCT Q1)**: 기획은 Spring Boot 3.x인데 현재 4.2.0으로 세팅되어 있습니다. QueryDSL, Redisson, Spring Kafka를 추가하기 전에 호환성을 확인하고, 버전을 결정한 뒤 진행합니다.
+> **Spring Boot 4.2 유지로 결정 (PRODUCT Q1)**: 기획은 3.x였지만 4.2를 유지합니다. QueryDSL, Redisson, Spring Kafka 등을 추가할 때는 Boot 4 / Hibernate 7 / Jakarta EE 11과 호환되는 버전을 고릅니다. 호환 여부는 추측하지 말고 해당 라이브러리 문서나 릴리스 노트로 확인합니다. 예를 들어 QueryDSL은 원조 `com.querydsl` 5.x 대신 `io.github.openfeign.querydsl` 포크를 검토합니다.
 
 ## 검증
 
