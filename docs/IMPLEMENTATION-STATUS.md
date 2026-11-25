@@ -1,6 +1,6 @@
 # 구현 현황 — 스펙 vs 코드
 
-> 기능을 추가하거나 바꿀 때마다 이 문서를 함께 갱신합니다. 마지막 갱신: 2026-11-25 (기획 반영)
+> 기능을 추가하거나 바꿀 때마다 이 문서를 함께 갱신합니다. 마지막 갱신: 2026-11-25 (브랜치 계획, 패키지 뼈대)
 
 ## 현재 있는 것
 
@@ -14,6 +14,7 @@
 | 테스트 | `AutologServerApplicationTests.contextLoads()` | 이것 하나뿐 |
 | CI | `.github/workflows/ci.yml` | develop·main 대상 PR과 푸시 시 `./gradlew build` |
 | 하네스 | `AGENTS.md`, `CLAUDE.md`, `.claude/` | |
+| 도메인 패키지 뼈대 | `domain/{rate,account,ledger,order,idempotency}` | `package-info.java`만 있음 (클래스 없음) |
 
 ## 기능 현황 (PRODUCT.md의 MVP 4단계)
 
@@ -59,6 +60,25 @@ Kafka와 Redis 없이도 검증할 수 있는 **원장 핵심**부터 쌓고, �
 10. 동시성 테스트(Testcontainers) + k6
 11. (선택) 외부 환율 API Collector, Prometheus/Grafana, 인증
 ```
+
+## 브랜치 계획
+
+브랜치와 PR은 아래 묶음 단위로 만듭니다. 묶음 안의 작은 작업은 커밋으로 나눕니다. "추천 순서 번호"는 바로 위 "추천 구현 순서"의 0~11 번호입니다. "기능 현황" 표의 단계(0, ①~④)와는 다른 번호입니다.
+
+| 브랜치 | 추천 순서 번호 | 내용 |
+|--------|-----------|------|
+| `feat/ledger-core` | 0~2 | `BaseTimeEntity` → `Instant`, `CurrencyCode`, 적용환율 계산기, `accounts`, `ledger_entries`(모델 B, 시스템 계정), 균형·balance_after 검증, 대사 |
+| `feat/exchange` | 3~4 | 모의 충전, 즉시 환전(MARKET) API, `idempotency_keys` + `Idempotency-Key` |
+| `chore/infra` | 5 | Docker Compose(MySQL, Redis, Kafka), QueryDSL·Redisson·Spring Kafka·Testcontainers 의존성 |
+| `feat/rate-streaming` | 6 | Mock Market, `fx-rate-topic`, Redis 최신 시세, SSE |
+| `feat/limit-order` | 7~9 | 지정가 주문, ZSet 매칭, `fx-order-matched` 체결 컨슈머, 분산 락, DLQ·FAILED |
+| `test/load` | 10 | 동시성 통합 테스트, k6 |
+| `feat/external-collector` | 11 | 외부 환율 API Collector (한국수출입은행 등) |
+| `chore/monitoring` | 11 | Prometheus/Grafana |
+| `feat/auth` | 11 | `user` 도메인, 회원·인증, Spring Security (Q8 결정 후) |
+| `chore/harness` | — | 하네스, 규칙 문서, 프로젝트 구조처럼 기능과 무관한 정비 |
+
+진행하면서 묶음이 너무 커지면(예: PR 하나에 파일 40개 이상), 사용자와 상의해 둘로 나눕니다. 어느 묶음에도 맞지 않는 요청이 오면 이 표에 묶음을 추가할지 사용자에게 물어봅니다.
 
 ## 알려진 이슈 / 결정 대기
 

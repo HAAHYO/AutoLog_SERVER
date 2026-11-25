@@ -28,7 +28,9 @@ com.autolog.server
 └── global/{config, entity, exception}
 ```
 
-- 도메인 패키지명은 단수 소문자를 씁니다: `rate`, `account`, `ledger`, `order`, `user`
+- 도메인 패키지명은 단수 소문자를 씁니다: `rate`, `account`, `ledger`, `order`, `idempotency`, (예정) `user`
+- 이미 만들어 둔 뼈대 패키지에는 `package-info.java`가 있습니다. 도메인 최상위 파일에는 담당 범위를 적어 두었으니, 새 클래스는 그 범위에 맞는 도메인에 둡니다. 실제 클래스가 들어온 뒤에도 `package-info.java`는 지우지 않습니다.
+- 쓰이지 않을 계층 패키지는 만들지 않습니다(예: `idempotency`에는 HTTP 진입점이 인터셉터라서 `controller`가 없습니다).
 - 도메인 안에 추가로 둘 수 있는 하위 패키지:
 
   | 패키지 | 내용 |

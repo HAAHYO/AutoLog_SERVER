@@ -26,7 +26,7 @@ description: "AutoLog 저장소(HAAHYO/AutoLog_SERVER)에 .github/PULL_REQUEST_T
 
 | 종류 | head → base | 언제 |
 |------|-------------|------|
-| 기능 PR (기본) | `<type>/<주제>` → **`develop`** | 작업 브랜치 하나가 끝났을 때 |
+| 기능 PR (기본) | `<type>/<주제>` → **`develop`** | 큰 기능 묶음 하나가 끝났을 때 (작은 작업 단위로 PR을 올리지 않음) |
 | 릴리스 PR | `develop` → `main` | 마일스톤(예: MVP 단계 하나)이 끝나 안정적일 때, **사용자가 요청할 때만** |
 
 `gh pr create`에 `--base`를 빠뜨리지 않습니다. 기본 브랜치가 `develop`이라 생략해도 develop으로 가긴 하지만, 의도를 명시하기 위해 항상 적습니다.
@@ -65,7 +65,7 @@ gh pr list --head "$(git branch --show-current)"   # 이미 열린 PR이 있는�
 이슈가 있다면 `Closes #<번호>`, 없다면 `- 없음`이라고 씁니다. 이슈는 `gh issue list`로 확인합니다.
 
 ### ✨ 주요 작업 내용
-`git log --oneline develop..HEAD`를 기준으로, 의미 있는 단위마다 한 줄씩 씁니다. 엔티티, 리포지토리, 서비스 커밋 3개는 한 줄로 합쳐도 됩니다.
+PR이 큰 기능 묶음이므로, **하위 기능별로 묶어서** 씁니다(예: "CurrencyCode", "적용환율 계산기", "원장 엔티티"). 하위 기능마다 체크박스 한 줄을 두고, 필요하면 그 아래에 들여쓰기로 세부 항목을 적습니다. 근거는 `git log --oneline develop..HEAD`입니다. 엔티티, 리포지토리, 서비스 커밋 3개는 한 줄로 합쳐도 됩니다.
 
 ### 🧪 테스트 체크리스트
 **실제로 사실인 항목만 체크합니다.** 거짓으로 체크된 박스는 나중의 나를 속입니다.
@@ -99,7 +99,7 @@ gh pr create --base develop --head "$(git branch --show-current)" \
 ```
 
 - 제목 형식은 커밋 규칙과 같은 `<type>: <한국어 요약>`이고, type은 PR의 주된 변경을 따릅니다.
-- 생성한 뒤에는 PR URL을 사용자에게 알려줍니다.
+- 생성한 뒤에는 **곧바로 `pr-self-review` 스킬을 실행합니다**(사용자 요청이 없어도). 리뷰와 반영을 마친 뒤 PR URL과 리뷰 결과를 사용자에게 알려줍니다.
 
 ## 병합 (요청 시)
 

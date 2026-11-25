@@ -27,7 +27,7 @@
 
 | 에이전트 | 역할 | 스킬 |
 |----------|------|------|
-| (리더) | 요구사항 정리, API 계약 작성, 통합, 빌드, 커밋/PR | `autolog-orchestrator`, `api-contract`, `git-commit-convention`, `github-pr-author` |
+| (리더) | 요구사항 정리, API 계약 작성, 통합, 빌드, 커밋/PR, 셀프 리뷰 | `autolog-orchestrator`, `api-contract`, `git-commit-convention`, `github-pr-author`, `pr-self-review` |
 | `domain-engineer` | 엔티티, 리포지토리, 서비스, ErrorCode, 컨슈머, Redis, 락 Facade | `jpa-domain`, `money-ledger`, `kafka-redis-pipeline` |
 | `web-engineer` | 컨트롤러, 요청/응답 DTO, SSE 엔드포인트 | `api-contract` |
 | `qa-inspector` | 레이어 간 교차 검증 (체크 1~9) | `qa-verify`, `money-ledger`, `kafka-redis-pipeline` |
@@ -47,13 +47,14 @@
 | `qa-verify` | 레이어 간 교차 검증 체크리스트 |
 | `git-commit-convention` | 커밋 단위와 메시지 규칙 |
 | `github-pr-author` | 셀프 PR 작성 |
+| `pr-self-review` | PR 생성 직후 셀프 코드 리뷰, 반영, 기록 (자동 실행) |
 
 ### 참고한 하네스와 다른 점
 
 `VOID-GSM/TaekBaeWatShong_SERVER`의 하네스를 개인 프로젝트에 맞게 줄였습니다.
 
 - **뺀 것:**
-  - 리뷰 코멘트 작성·응답 스킬 (리뷰어가 없음)
+  - 리뷰 코멘트 작성·응답 스킬 2개 → `pr-self-review` 하나로 합침 (리뷰어 = Claude 자신)
   - `api-designer`, `security-engineer`, `git-workflow-engineer` 에이전트
   - Discord 알림, SSH 배포
   - `.codex/` 스킬 사본
@@ -73,3 +74,6 @@
 | 2026-11-25 | 최초 구축: 에이전트 3개, 스킬 8개, docs, CI, PR 템플릿 | 전체 | TaekBaeWatShong 하네스를 개인 프로젝트·Java·금융 도메인에 맞게 조정 |
 | 2026-11-25 | 기획 반영: `kafka-redis-pipeline` 스킬 추가, 원장 모델을 accounts/ledger_entries로 변경, QA 체크 9 추가 | docs, skills, agents | 사용자 기획서(Kafka, Redis ZSet, Redisson, 멱등성 키, DLQ, 스프레드·우대율)를 받음 |
 | 2026-11-25 | 브랜치 전략을 GitHub Flow에서 main + develop으로 변경 (기능 PR base = develop) | git·PR 스킬, AGENTS, CI | 사용자 요청. 나중에 main을 배포 대상으로 쓰기 위해 |
+| 2026-11-25 | 브랜치·PR 단위를 큰 기능 묶음으로 변경, 브랜치 계획 추가 | git·PR 스킬, AGENTS, 오케스트레이터, 구현 현황 | 사용자 요청. 작은 작업마다 브랜치를 만드니 너무 잘게 쪼개짐 |
+| 2026-11-25 | `pr-self-review` 스킬 추가, PR 템플릿에 셀프 리뷰 섹션 추가 | skills, PR 템플릿, AGENTS | 사용자 요청: PR 만든 뒤 스스로 리뷰하고 반영 |
+| 2026-11-25 | 도메인 패키지 뼈대 생성 (기능별 패키지 구조) | `domain/` | 사용자 요청: 참고 레포처럼 기능 아래 controller/entity 등 계층 배치 |
