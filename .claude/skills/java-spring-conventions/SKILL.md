@@ -12,7 +12,7 @@ description: "AutoLog 서버의 Java/Spring Boot 코딩 컨벤션 전체 레퍼�
 - Lombok을 씁니다. 허용 범위는 아래에 따로 정리했습니다.
 - `spring.jpa.open-in-view: false`입니다.
 - `GlobalExceptionHandler`(`@RestControllerAdvice`)가 있으며, 처리하지 못한 예외는 모두 500이 됩니다.
-- **도입 예정이지만 아직 없는 것**: QueryDSL, Redis/Redisson, Spring Kafka, Testcontainers. 의존성은 사용자에게 제안하고 승인받은 뒤 추가합니다. Boot 버전(PRODUCT Q1)과의 호환성도 확인합니다.
+- **도입 예정이지만 아직 없는 것**: QueryDSL, Redis/Redisson, Spring Kafka, Testcontainers. 의존성은 사용자에게 제안하고 승인받은 뒤 추가합니다. Boot 4.2 유지가 결정되었으므로(PRODUCT Q1), Boot 4 / Hibernate 7과 호환되는 버전을 문서로 확인한 뒤 고릅니다.
 
 ## 포맷
 
