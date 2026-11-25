@@ -139,9 +139,10 @@ com.autolog.server
 
 ### 브랜치
 
-- `main`은 항상 빌드가 되는 상태를 유지합니다.
-- 작업은 `<type>/<kebab-주제>` 브랜치에서 합니다(예: `feat/exchange-rate-stream`, `fix/ledger-rounding`).
-- 예외로, **문서만 바꾸는 작은 수정**(`docs:` 커밋 1~2개)은 사용자가 원할 때 `main`에 직접 커밋할 수 있습니다.
+- `main`: 릴리스된 안정 버전입니다. 직접 커밋하지 않고, `develop`에서 오는 **릴리스 PR**로만 병합합니다.
+- `develop`: 통합 브랜치입니다. **기능 PR의 base**이며 GitHub 기본 브랜치입니다.
+- 작업은 **`develop`에서 분기한** `<type>/<kebab-주제>` 브랜치에서 합니다(예: `feat/exchange-rate-stream`, `fix/ledger-rounding`).
+- 예외로, **문서만 바꾸는 작은 수정**(`docs:` 커밋 1~2개)은 사용자가 원할 때 `develop`에 직접 커밋할 수 있습니다.
 
 ### 커밋
 
@@ -164,7 +165,8 @@ com.autolog.server
 
 ### PR
 
-- 기능 브랜치는 PR로 `main`에 병합합니다. CI 기록을 남기고 셀프 리뷰를 하는 것이 목적입니다.
+- 기능 브랜치는 PR로 **`develop`**에 병합합니다(`--base develop`). CI 기록을 남기고 셀프 리뷰를 하는 것이 목적입니다.
+- `develop` → `main` 릴리스 PR은 마일스톤이 끝났을 때 **사용자가 요청하면** 만듭니다.
 - PR은 `.github/PULL_REQUEST_TEMPLATE.md` 양식으로 작성하고, 체크리스트는 **실제로 확인한 항목만** 체크합니다.
 - 병합은 **Merge commit**으로 합니다. 잘게 나눈 커밋 기록을 남기기 위해서입니다. squash는 쓰지 않습니다.
 
