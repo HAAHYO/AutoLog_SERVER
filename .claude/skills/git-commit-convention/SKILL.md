@@ -5,23 +5,32 @@ description: "AutoLog 저장소의 브랜치·커밋 규칙 — 영어 타입 �
 
 # 브랜치·커밋 규칙
 
-## 브랜치 (개인 프로젝트용 GitHub Flow)
+## 브랜치 (main + develop)
 
 ```
-main ← feat/exchange-rate-stream
-     ← fix/ledger-rounding
-     ← chore/ci-cache
+main     ← develop (릴리스 PR, 마일스톤 단위)
+develop  ← feat/exchange-rate-stream
+         ← fix/ledger-rounding
+         ← chore/ci-cache
 ```
 
-- `main`은 항상 빌드가 되는 상태여야 합니다.
+| 브랜치 | 역할 | 직접 커밋 |
+|--------|------|-----------|
+| `main` | 릴리스된 안정 버전. 나중에 배포(CD)를 붙일 대상 | **금지**. `develop`에서 오는 릴리스 PR로만 병합 |
+| `develop` | 통합 브랜치. 기능 PR의 **base**이며 GitHub 기본 브랜치 | 원칙적으로 금지 (아래 예외) |
+| `<type>/<kebab-주제>` | 작업 브랜치. **`develop`에서 분기** | 자유 |
+
 - 작업 브랜치 이름은 `<type>/<kebab-주제>`입니다. type은 아래 커밋 타입 중 하나입니다.
-- 브랜치 하나에는 기능 하나만 담습니다. 작업이 끝나면 PR로 병합합니다(`github-pr-author` 참고).
-- **예외**: 문서만 바꾸는 작은 수정은 사용자가 원하면 `main`에 직접 커밋할 수 있습니다. 코드 변경은 항상 브랜치에서 합니다.
-- 현재 브랜치가 `main`인데 코드 커밋을 해야 한다면, 먼저 브랜치를 만들고 사용자에게 알립니다.
+- 브랜치 하나에는 기능 하나만 담습니다. 작업이 끝나면 PR로 `develop`에 병합합니다(`github-pr-author` 참고).
+- **예외**: 문서만 바꾸는 작은 수정은 사용자가 원하면 `develop`에 직접 커밋할 수 있습니다. 코드 변경은 항상 브랜치에서 하고, `main`에는 어떤 경우에도 직접 커밋하지 않습니다.
+- 현재 브랜치가 `develop`이나 `main`인데 코드 커밋을 해야 한다면, **최신 `develop`에서** 브랜치를 만들고 사용자에게 알립니다.
 
   ```bash
+  git switch develop && git pull
   git switch -c feat/<주제>
   ```
+
+- hotfix 브랜치(`main`에서 분기)는 운영 배포가 생기기 전까지 쓰지 않습니다. 버그도 `fix/*` → `develop`으로 고칩니다.
 
 ## 메시지 형식
 
@@ -112,7 +121,7 @@ main ← feat/exchange-rate-stream
      feat: 지정가 주문 엔티티 추가
      '@
      ```
-5. 단위마다 반복합니다. 끝나면 `git log --oneline main..HEAD`로 전체 목록을 확인합니다.
+5. 단위마다 반복합니다. 끝나면 `git log --oneline develop..HEAD`로 전체 목록을 확인합니다.
 
 ## 규칙
 
