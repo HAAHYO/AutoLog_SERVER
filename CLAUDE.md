@@ -28,9 +28,9 @@
 | 에이전트 | 역할 | 스킬 |
 |----------|------|------|
 | (리더) | 요구사항 정리, API 계약 작성, 통합, 빌드, 커밋/PR | `autolog-orchestrator`, `api-contract`, `git-commit-convention`, `github-pr-author` |
-| `domain-engineer` | 엔티티, 리포지토리, 서비스, ErrorCode | `jpa-domain`, `money-ledger` |
-| `web-engineer` | 컨트롤러, 요청/응답 DTO | `api-contract` |
-| `qa-inspector` | 레이어 간 교차 검증 | `qa-verify`, `money-ledger` |
+| `domain-engineer` | 엔티티, 리포지토리, 서비스, ErrorCode, 컨슈머, Redis, 락 Facade | `jpa-domain`, `money-ledger`, `kafka-redis-pipeline` |
+| `web-engineer` | 컨트롤러, 요청/응답 DTO, SSE 엔드포인트 | `api-contract` |
+| `qa-inspector` | 레이어 간 교차 검증 (체크 1~9) | `qa-verify`, `money-ledger`, `kafka-redis-pipeline` |
 
 세 에이전트 모두 `java-spring-conventions`를 읽습니다. 커밋은 리더만 하며, 통합과 빌드가 끝난 뒤에 합니다.
 
