@@ -1,13 +1,13 @@
 ---
 name: github-pr-author
-description: "AutoLog 저장소(HAAHYO/AutoLog_SERVER)에 .github/PULL_REQUEST_TEMPLATE.md 양식으로 한국어 셀프 PR을 만들고, CI 확인 후 병합한다. 'PR 만들어줘', 'PR 올려줘', '머지해줘' 요청이나 기능 브랜치 작업이 끝났을 때 사용한다. 체크리스트를 근거 없이 체크하지 않는 규칙, 푸시·생성·병합 전 확인 게이트, 셀프 리뷰 절차를 다룬다."
+description: "AutoLog 저장소(HAAHYO/AutoLog_SERVER)에 .github/PULL_REQUEST_TEMPLATE.md 양식으로 한국어 셀프 PR을 만들고(기능 PR은 base=develop, 릴리스 PR은 develop→main), CI 확인 후 병합한다. 'PR 만들어줘', 'PR 올려줘', '머지해줘' 요청이나 기능 브랜치 작업이 끝났을 때 사용한다. 체크리스트를 근거 없이 체크하지 않는 규칙, 푸시·생성·병합 전 확인 게이트, 셀프 리뷰 절차를 다룬다."
 ---
 
 # 셀프 PR 작성과 병합
 
 개인 프로젝트라 리뷰어가 없습니다. PR을 쓰는 목적은 다음 세 가지입니다.
 
-1. **CI 실행**: `main`에 들어가기 전에 빌드와 테스트를 돌립니다.
+1. **CI 실행**: `develop`에 들어가기 전에 빌드와 테스트를 돌립니다.
 2. **변경 기록**: 나중에 "이 기능은 왜 이렇게 만들었나"를 PR 본문에서 찾을 수 있습니다.
 3. **셀프 리뷰**: 병합 전에 디프 전체를 한 번 훑어봅니다.
 
@@ -22,12 +22,22 @@ description: "AutoLog 저장소(HAAHYO/AutoLog_SERVER)에 .github/PULL_REQUEST_T
 | `gh pr merge` | **명시적으로 요청했을 때만** |
 | force push | 하지 않음 |
 
+## PR 종류
+
+| 종류 | head → base | 언제 |
+|------|-------------|------|
+| 기능 PR (기본) | `<type>/<주제>` → **`develop`** | 작업 브랜치 하나가 끝났을 때 |
+| 릴리스 PR | `develop` → `main` | 마일스톤(예: MVP 단계 하나)이 끝나 안정적일 때, **사용자가 요청할 때만** |
+
+`gh pr create`에 `--base`를 빠뜨리지 않습니다. 기본 브랜치가 `develop`이라 생략해도 develop으로 가긴 하지만, 의도를 명시하기 위해 항상 적습니다.
+
 ## 사전 점검
 
 ```bash
-git branch --show-current                          # main이면 안 됨
+git branch --show-current                          # develop, main이면 안 됨
+git fetch origin && git log --oneline HEAD..origin/develop   # develop이 앞서 있으면 먼저 반영
 git status --short                                 # 깨끗해야 함
-git log --oneline main..HEAD                       # PR에 들어갈 커밋
+git log --oneline develop..HEAD                    # PR에 들어갈 커밋
 gh pr list --head "$(git branch --show-current)"   # 이미 열린 PR이 있는지
 ./gradlew build                                    # 로컬 빌드
 ```
@@ -37,7 +47,7 @@ gh pr list --head "$(git branch --show-current)"   # 이미 열린 PR이 있는�
 
 ## 셀프 리뷰 (PR 생성 전)
 
-1. `git diff main...HEAD`를 처음부터 끝까지 읽습니다.
+1. `git diff develop...HEAD`를 처음부터 끝까지 읽습니다.
 2. 금액, 원장, 주문, 체결 코드가 바뀌었다면 `qa-verify`의 체크 8(금융 불변식)을 반드시 돌립니다.
 3. 그 밖의 변경은 `qa-verify`에서 관련 있는 체크만 돌립니다.
 4. 발견된 문제는 PR을 만들기 전에 고치거나, 본문의 "기타 참고사항"에 적습니다.
@@ -55,7 +65,7 @@ gh pr list --head "$(git branch --show-current)"   # 이미 열린 PR이 있는�
 이슈가 있다면 `Closes #<번호>`, 없다면 `- 없음`이라고 씁니다. 이슈는 `gh issue list`로 확인합니다.
 
 ### ✨ 주요 작업 내용
-`git log --oneline main..HEAD`를 기준으로, 의미 있는 단위마다 한 줄씩 씁니다. 엔티티, 리포지토리, 서비스 커밋 3개는 한 줄로 합쳐도 됩니다.
+`git log --oneline develop..HEAD`를 기준으로, 의미 있는 단위마다 한 줄씩 씁니다. 엔티티, 리포지토리, 서비스 커밋 3개는 한 줄로 합쳐도 됩니다.
 
 ### 🧪 테스트 체크리스트
 **실제로 사실인 항목만 체크합니다.** 거짓으로 체크된 박스는 나중의 나를 속입니다.
@@ -83,7 +93,7 @@ gh pr list --head "$(git branch --show-current)"   # 이미 열린 PR이 있는�
 한국어와 마크다운이 셸 인용 과정에서 깨지지 않도록, 본문은 스크래치패드 파일로 써서 넘깁니다.
 
 ```bash
-gh pr create --base main --head "$(git branch --show-current)" \
+gh pr create --base develop --head "$(git branch --show-current)" \
   --title "feat: 지정가 주문 생성 API 추가" \
   --body-file <scratchpad>/pr-body.md
 ```
@@ -96,22 +106,12 @@ gh pr create --base main --head "$(git branch --show-current)" \
 ```bash
 gh pr checks <번호> --watch              # CI 통과 확인
 gh pr merge <번호> --merge --delete-branch
-git switch main && git pull
+git switch develop && git pull
 ```
 
 - CI가 실패한 상태에서는 병합하지 않습니다. 실패 로그를 사용자에게 보여줍니다.
 - 병합 방식은 `--merge`(merge commit)입니다. 잘게 나눈 커밋 기록을 남기기 위해서이며, squash는 쓰지 않습니다.
 
-## 갱신
-
-새 커밋으로 PR의 내용이 바뀌었다면 푸시한 뒤 본문(작업 내용, 체크리스트)도 갱신합니다.
-
-```bash
-git push
-gh pr edit <번호> --body-file <scratchpad>/pr-body.md
-```
-
-## 규칙
 ## 릴리스 PR (develop → main, 요청 시)
 
 ```bash
@@ -125,8 +125,19 @@ gh pr create --base main --head develop   --title "chore: <마일스톤> 릴리�
 - 병합한 뒤 태그를 붙일지(`v0.1.0` 등)는 사용자에게 물어봅니다.
 - `main`에만 있고 `develop`에 없는 커밋이 생기면(머지 커밋 외), 곧바로 `main` → `develop`으로 동기화합니다.
 
+## 갱신
 
-- `main`에서 PR을 만들지 않습니다.
+새 커밋으로 PR의 내용이 바뀌었다면 푸시한 뒤 본문(작업 내용, 체크리스트)도 갱신합니다.
+
+```bash
+git push
+gh pr edit <번호> --body-file <scratchpad>/pr-body.md
+```
+
+## 규칙
+
+- 기능 PR의 base는 `develop`입니다. 기능 브랜치를 `main`으로 PR하지 않습니다.
+- `develop`이나 `main`에서 기능 PR을 만들지 않습니다(릴리스 PR만 예외).
 - 브랜치 하나에는 PR 하나만 둡니다.
 - 근거 없이 체크박스를 체크하지 않습니다.
 - 본문에 비밀값, 토큰, `.env` 내용을 넣지 않습니다.
