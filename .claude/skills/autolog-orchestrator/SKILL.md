@@ -40,7 +40,7 @@ description: "AutoLog 백엔드의 큰 작업을 에이전트 팀(domain-enginee
 1. `docs/PRODUCT.md`와 `docs/IMPLEMENTATION-STATUS.md`를 읽습니다.
    - 요청이 미결정 제품 질문이나 아직 없는 기능에 의존하는지 확인합니다.
    - 의존한다면 **팀을 띄우기 전에** 사용자에게 알립니다.
-2. 브랜치를 확인합니다. 요청이 `docs/IMPLEMENTATION-STATUS.md` "브랜치 계획"의 어느 묶음에 속하는지 보고, 그 묶음의 브랜치가 이미 있으면 **그 브랜치에서 이어서** 작업합니다. 없으면 최신 `develop`에서 묶음 이름으로 만들고 사용자에게 알립니다. 작은 작업 하나만을 위한 브랜치는 만들지 않습니다.
+2. 브랜치를 확인합니다. 요청이 `docs/IMPLEMENTATION-STATUS.md` "브랜치 계획"의 어느 묶음에 속하는지 보고, 그 묶음의 브랜치가 이미 있고 **아직 병합되지 않았다면**(`gh pr list --head <브랜치> --state merged`가 비어 있음) 그 브랜치에서 이어서 작업합니다. 이미 병합된 브랜치라면 이어 쓰지 않고, 최신 `develop`에서 새로 분기합니다. 버그 수정이면 `fix/*`, 같은 묶음의 후속 기능이면 묶음 이름에 `-2` 같은 접미사를 붙입니다. 없으면 최신 `develop`에서 묶음 이름으로 만들고 사용자에게 알립니다. 작은 작업 하나만을 위한 브랜치는 만들지 않습니다.
 3. `_workspace/00_input/request.md`에 요청과 제약을 적습니다.
 4. `_workspace/00_input/baseline.md`에 `git rev-parse HEAD`와 `git status --short` 결과를 기록합니다.
 5. 관련 기존 소스를 읽어 둡니다. 에이전트 프롬프트에 실제 파일 경로를 적기 위해서입니다.
