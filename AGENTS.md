@@ -143,8 +143,9 @@ com.autolog.server
 
 - `main`: 릴리스된 안정 버전입니다. 직접 커밋하지 않고, `develop`에서 오는 **릴리스 PR**로만 병합합니다.
 - `develop`: 통합 브랜치입니다. **기능 PR의 base**이며 GitHub 기본 브랜치입니다.
-- 작업은 **`develop`에서 분기한** `<type>/<kebab-주제>` 브랜치에서 합니다(예: `feat/exchange-rate-stream`, `fix/ledger-rounding`).
-- 예외로, **문서만 바꾸는 작은 수정**(`docs:` 커밋 1~2개)은 사용자가 원할 때 `develop`에 직접 커밋할 수 있습니다.
+- 작업은 **`develop`에서 분기한** `<type>/<kebab-주제>` 브랜치에서 합니다.
+- **브랜치와 PR은 큰 기능 묶음(MVP 단계, 도메인) 단위**입니다(예: `feat/ledger-core`, `feat/rate-streaming`). 작은 선행 작업마다 브랜치를 만들지 않고, 그 작업이 필요한 큰 브랜치 안에 커밋으로 넣습니다. 계획은 `docs/IMPLEMENTATION-STATUS.md`의 "브랜치 계획"에 있습니다.
+- `develop`과 `main`에는 직접 커밋하거나 푸시하지 않습니다. 문서 수정도 브랜치와 PR을 거칩니다.
 
 ### 커밋
 
