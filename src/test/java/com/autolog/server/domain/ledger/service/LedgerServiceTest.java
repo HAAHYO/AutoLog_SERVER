@@ -92,6 +92,7 @@ class LedgerServiceTest {
 		AccountReconciliation spread = reconciliationService.reconcileAccount(spreadKrw.getId());
 
 		assertThat(position.cachedBalance()).isNull();
+		assertThat(position.matched()).as("시스템 계좌는 비교 불가").isNull();
 		assertThat(position.ledgerBalance()).isEqualByComparingTo("-100");
 		assertThat(spread.ledgerBalance()).isEqualByComparingTo("1500");
 	}
