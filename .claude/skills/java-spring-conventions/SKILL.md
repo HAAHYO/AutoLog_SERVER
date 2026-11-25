@@ -35,14 +35,14 @@ com.autolog.server
 
 | 대상 | 규칙 | 예 |
 |------|------|-----|
-| 엔티티 | 단수 명사 | `ExchangeOrder`, `JournalEntry` |
-| 리포지토리 | `<Entity>Repository` | `ExchangeOrderRepository` |
-| 서비스 | `<Domain>Service` | `ExchangeOrderService` |
+| 엔티티 | 단수 명사 | `FxOrder`, `LedgerEntry`, `Account` |
+| 리포지토리 | `<Entity>Repository` | `FxOrderRepository` |
+| 서비스 | `<Domain>Service` | `FxOrderService` |
 | 요청 DTO | `<Action>Request` | `OrderCreateRequest` |
 | 응답 DTO | `<Action/Entity>Response` | `OrderResponse`, `OrderListResponse` |
 | ErrorCode | `<DOMAIN>_<상황>` | `ORDER_NOT_FOUND`, `LEDGER_UNBALANCED` |
 
-`order`는 SQL 예약어입니다. 엔티티 이름은 `ExchangeOrder`로 하고, 테이블명은 `@Table(name = "exchange_order")`로 명시합니다.
+테이블명은 `@Table(name = "...")`으로 명시하고, 복수형 snake_case로 짓습니다(`accounts`, `fx_orders`, `ledger_entries`, `idempotency_keys` — `docs/DOMAIN-MODEL.md`). `order`는 SQL 예약어이므로 주문 엔티티는 `FxOrder`입니다.
 
 ## 엔티티
 
@@ -50,7 +50,7 @@ com.autolog.server
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class ExchangeOrder extends BaseTimeEntity {
+public class FxOrder extends BaseTimeEntity {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -70,15 +70,19 @@ public class ExchangeOrder extends BaseTimeEntity {
 	private Instant executedAt;
 
 	@Builder
-	private ExchangeOrder(Account account, BigDecimal amount) { ... }
+	private FxOrder(Account account, BigDecimal amount) { ... }
 
-	public void execute(Instant now) {
+	public void complete(BigDecimal executedRate, Instant now) {
 		if (status != OrderStatus.PENDING) {
 			throw new BusinessException(ErrorCode.ORDER_NOT_PENDING);
 		}
-		this.status = OrderStatus.EXECUTED;
+		this.status = OrderStatus.COMPLETED;
+		this.executedRate = executedRate;
 		this.executedAt = now;
 	}
+	@Column(precision = 19, scale = 8)
+	private BigDecimal executedRate;
+
 }
 ```
 
@@ -104,7 +108,7 @@ public record OrderCreateRequest(
 
 public record OrderResponse(Long id, OrderStatus status, BigDecimal amount, Instant executedAt) {
 
-	public static OrderResponse from(ExchangeOrder order) {
+	public static OrderResponse from(FxOrder order) {
 		return new OrderResponse(order.getId(), order.getStatus(), order.getAmount(), order.getExecutedAt());
 	}
 }
@@ -127,9 +131,9 @@ public record OrderListResponse(List<OrderResponse> orders) {
 @RestController
 @RequestMapping("/api/v1/orders")
 @RequiredArgsConstructor
-public class ExchangeOrderController {
+public class FxOrderController {
 
-	private final ExchangeOrderService exchangeOrderService;
+	private final FxOrderService fxOrderService;
 
 	@PostMapping
 	public ResponseEntity<OrderResponse> createOrder(@Valid @RequestBody OrderCreateRequest request) {
@@ -156,7 +160,7 @@ public class ExchangeOrderController {
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
-public class ExchangeOrderService {
+public class FxOrderService {
 
 	@Transactional
 	public OrderResponse createOrder(OrderCreateRequest request) { ... }
