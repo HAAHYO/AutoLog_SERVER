@@ -229,6 +229,14 @@ throw new BusinessException(ErrorCode.INVALID_INPUT, "지정가는 0보다 커�
 - 동시성 제어가 필요하면 `@Lock(LockModeType.PESSIMISTIC_WRITE)`나 `@Version`을 씁니다. `money-ledger` 스킬을 참고하세요.
 
 ## 테스트
+### QueryDSL (도입 후)
+
+- 동적 조건 검색(주문 내역 필터, 원장 기간 조회)은 QueryDSL로, 단순 조회는 파생 쿼리로 작성합니다.
+- 구조는 `<Entity>RepositoryCustom` 인터페이스 + `<Entity>RepositoryImpl`(`JPAQueryFactory` 주입)이고, 본 리포지토리가 Custom을 상속합니다.
+- `JPAQueryFactory` 빈은 `global/config/QuerydslConfig`에 둡니다.
+- Q클래스(`build/generated`)는 커밋하지 않습니다.
+- 목록 쿼리는 cursor 페이지네이션(`id < :cursor ORDER BY id DESC LIMIT n`)을 기본으로 합니다.
+
 
 - 테스트 클래스에는 `@ActiveProfiles("test")`를 붙입니다. H2를 사용합니다.
 - 도메인 로직(엔티티 상태 전이, 금액 계산, 분개 균형)은 **스프링 없이 순수 단위 테스트**로 작성합니다. 빠르고 실패 원인이 분명하기 때문입니다.
