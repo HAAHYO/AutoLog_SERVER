@@ -14,6 +14,7 @@
 | 테스트 | `AutologServerApplicationTests.contextLoads()` | 이것 하나뿐 |
 | CI | `.github/workflows/ci.yml` | develop·main 대상 PR과 푸시 시 `./gradlew build` |
 | 하네스 | `AGENTS.md`, `CLAUDE.md`, `.claude/` | |
+| 도메인 패키지 뼈대 | `domain/{rate,account,ledger,order,idempotency}` | `package-info.java`만 있음 (클래스 없음) |
 
 ## 기능 현황 (PRODUCT.md의 MVP 4단계)
 
