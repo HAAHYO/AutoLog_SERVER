@@ -61,6 +61,21 @@ Kafka와 Redis 없이도 검증할 수 있는 **원장 핵심**부터 쌓고, �
 11. (선택) 외부 환율 API Collector, Prometheus/Grafana, 인증
 ```
 
+## 브랜치 계획
+
+브랜치와 PR은 아래 묶음 단위로 만듭니다. 묶음 안의 작은 작업은 커밋으로 나눕니다.
+
+| 브랜치 | 포함 단계 | 내용 |
+|--------|-----------|------|
+| `feat/ledger-core` | 0~2 | `BaseTimeEntity` → `Instant`, `CurrencyCode`, 적용환율 계산기, `accounts`, `ledger_entries`(모델 B, 시스템 계정), 균형·balance_after 검증, 대사 |
+| `feat/exchange` | 3~4 | 모의 충전, 즉시 환전(MARKET) API, `idempotency_keys` + `Idempotency-Key` |
+| `chore/infra` | 5 | Docker Compose(MySQL, Redis, Kafka), QueryDSL·Redisson·Spring Kafka·Testcontainers 의존성 |
+| `feat/rate-streaming` | 6 | Mock Market, `fx-rate-topic`, Redis 최신 시세, SSE |
+| `feat/limit-order` | 7~9 | 지정가 주문, ZSet 매칭, `fx-order-matched` 체결 컨슈머, 분산 락, DLQ·FAILED |
+| `test/load` | 10 | 동시성 통합 테스트, k6 |
+
+진행하면서 묶음이 너무 커지면(예: PR 하나에 파일 40개 이상), 사용자와 상의해 둘로 나눕니다.
+
 ## 알려진 이슈 / 결정 대기
 
 | # | 내용 | 영향 | 제안 |
