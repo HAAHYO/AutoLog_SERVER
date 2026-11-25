@@ -66,9 +66,6 @@ public class IdempotencyService {
 		if (!record.matches(requestHash)) {
 			throw new BusinessException(ErrorCode.IDEMPOTENCY_KEY_REUSED);
 		}
-		if (record.getResponseBody() == null) {
-			throw new BusinessException(ErrorCode.IDEMPOTENCY_KEY_IN_PROGRESS);
-		}
 		return jsonMapper.readValue(record.getResponseBody(), responseType);
 	}
 
