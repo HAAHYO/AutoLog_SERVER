@@ -172,6 +172,7 @@ com.autolog.server
 - `develop` → `main` 릴리스 PR은 마일스톤이 끝났을 때 **사용자가 요청하면** 만듭니다.
 - PR은 `.github/PULL_REQUEST_TEMPLATE.md` 양식으로 작성하고, 체크리스트는 **실제로 확인한 항목만** 체크합니다.
 - 병합은 **Merge commit**으로 합니다. 잘게 나눈 커밋 기록을 남기기 위해서입니다. squash는 쓰지 않습니다.
+- **PR을 만든 직후에는 항상 셀프 리뷰를 합니다**(`.claude/skills/pr-self-review/SKILL.md`). 리뷰 결과를 판단해 반영하거나 이유를 남기고, 결과는 PR 본문의 "🔍 셀프 리뷰"에 기록합니다. 머지는 사용자가 요청할 때만 합니다.
 
 ### 확인이 필요한 작업
 
