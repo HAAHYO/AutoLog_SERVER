@@ -12,7 +12,7 @@
 | 공통 예외 처리 | `global/exception` | `ErrorCode`, `BusinessException`, `ErrorResponse`, `GlobalExceptionHandler` |
 | 헬스 체크 | `GET /actuator/health` | |
 | 테스트 | `AutologServerApplicationTests.contextLoads()` | 이것 하나뿐 |
-| CI | `.github/workflows/ci.yml` | PR과 main 푸시 시 `./gradlew build` |
+| CI | `.github/workflows/ci.yml` | develop·main 대상 PR과 푸시 시 `./gradlew build` |
 | 하네스 | `AGENTS.md`, `CLAUDE.md`, `.claude/` | |
 
 ## 기능 현황 (PRODUCT.md의 MVP 4단계)
