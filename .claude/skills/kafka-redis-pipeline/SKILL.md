@@ -7,7 +7,7 @@ description: "AutoLog의 비동기·분산 처리 규칙 — Kafka 토픽(fx-rat
 
 이 스킬은 `money-ledger`와 짝을 이룹니다. money-ledger가 "**한 트랜잭션 안에서** 돈이 맞는가"를 다룬다면, 이 스킬은 "**여러 프로세스와 메시지가 얽혀도** 한 번만 처리되는가"를 다룹니다.
 
-> 아직 Kafka, Redis, Redisson 의존성이 없습니다. 이 스킬은 도입할 때의 규칙입니다. 의존성을 추가하는 것은 사용자의 결정이 필요한 사항이므로 먼저 제안하세요. Boot 버전(PRODUCT Q1)과의 호환성도 함께 확인합니다.
+> 아직 Kafka, Redis, Redisson 의존성이 없습니다. 이 스킬은 도입할 때의 규칙입니다. 의존성을 추가하는 것은 사용자의 결정이 필요한 사항이므로 먼저 제안하세요. Boot 4.2를 유지하기로 했으므로(PRODUCT Q1), Spring Kafka와 Redisson은 Boot 4와 호환되는 버전을 문서로 확인한 뒤 고릅니다.
 
 ## 기본 전제: 모든 것은 최소 한 번(at-least-once)
 
