@@ -73,7 +73,7 @@ com.autolog.server
 - **들여쓰기는 탭**입니다(Spring Initializr 스타일). YAML만 스페이스 2칸을 씁니다.
 - **엔티티**
   - `@Getter`와 `@NoArgsConstructor(access = AccessLevel.PROTECTED)`를 붙이고, `@Setter`와 `@Data`는 쓰지 않습니다.
-  - 상태 변경은 이름 있는 메서드(`execute()`, `cancel()`)로만 합니다.
+  - 상태 변경은 이름 있는 메서드(`complete()`, `fail()`)로만 합니다.
   - `@ManyToOne`은 항상 `LAZY`, enum은 `EnumType.STRING`으로 매핑합니다.
 - **DTO**
   - `record`로 만듭니다. 응답 DTO에는 `static from(entity)` 팩토리를 둡니다.
