@@ -2,6 +2,7 @@ package com.autolog.server.global.entity;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.autolog.server.global.config.ClockConfig;
 import com.autolog.server.global.config.JpaAuditingConfig;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -20,7 +21,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 
 @DataJpaTest
-@Import(JpaAuditingConfig.class)
+@Import({JpaAuditingConfig.class, ClockConfig.class})
 @ActiveProfiles("test")
 class BaseTimeEntityTest {
 
