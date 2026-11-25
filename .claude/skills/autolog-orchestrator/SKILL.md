@@ -48,7 +48,7 @@ description: "AutoLog 백엔드의 큰 작업을 에이전트 팀(domain-enginee
 ### Phase 2: 계약 (리더)
 
 1. `api-contract` 스킬 형식으로 `_workspace/01_contract.md`를 작성합니다.
-2. 금액, 원장, 주문 체결이 관련된 작업이라면 `money-ledger` 스킬을 읽고, 계약의 "불변식" 항목을 채웁니다.
+2. 금액, 원장, 주문 체결이 관련된 작업이라면 `money-ledger` 스킬을 읽고, 계약의 "불변식" 항목을 채웁니다. Kafka, Redis, 락이 관련된 작업이라면 `kafka-redis-pipeline`도 읽고, 계약 Notes에 토픽, 키, 락 단위, 멱등 처리 방식을 적습니다.
 3. 작업에 아직 없는 의존성(QueryDSL, Redis, Kafka, Testcontainers)이 필요하다면 **팀을 띄우기 전에** 사용자에게 추가해도 되는지 확인합니다.
 4. 실패 표의 동작이 제품 결정에 해당한다면(예: 잔액 부족 주문을 거절할지, 대기시킬지) 두 가지 안을 모두 적고 **사용자에게 물어봅니다.** 혼자 고르지 않습니다.
 
@@ -62,6 +62,7 @@ description: "AutoLog 백엔드의 큰 작업을 에이전트 팀(domain-enginee
 domain-engineer:
   "<기능>의 엔티티/리포지토리/서비스/ErrorCode를 구현해.
    먼저 .claude/skills/java-spring-conventions, jpa-domain, money-ledger 스킬을 읽어.
+   (Kafka/Redis/락이 포함되면 kafka-redis-pipeline도)
    계약: _workspace/01_contract.md. 기존 코드: <경로들>.
    서비스 시그니처는 계약과 정확히 일치시켜.
    _workspace/02_domain_notes.md에 '## 스키마 영향' 섹션을 반드시 포함해."
@@ -105,6 +106,7 @@ web-engineer:
 | `ddl-auto: update`로 안전하지 않은 스키마 변경 | 해당 작업을 멈추고, 필요한 수동 SQL을 사용자에게 먼저 보여줍니다. |
 | 원장 불변식이나 체결 동시성 관련 BLOCKER가 남음 | 작업을 **완료로 보고하지 않습니다.** 요약 맨 위에 적습니다. |
 | H2에서만 확인됨 (락, DECIMAL 등) | "확인하지 못함"에 "MySQL 미검증"으로 적습니다. |
+| Kafka/Redis를 띄우지 않고 정적으로만 확인함 | "확인하지 못함"에 "Kafka/Redis 통합 미검증"으로 적습니다. Docker Compose가 생긴 뒤에는 띄워서 확인할 수 있는지 먼저 시도합니다. |
 
 ## 최종 요약 형식 (한국어)
 
