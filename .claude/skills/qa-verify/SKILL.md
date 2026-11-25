@@ -12,7 +12,7 @@ description: "AutoLog 서버의 레이어 간 교차 검증 — 컨트롤러↔�
 ```bash
 ./gradlew compileJava          # 레이어 간 타입 오류
 ./gradlew test                 # H2로 컨텍스트 부팅 → 빈 와이어링, 파생 쿼리명, 매핑 검증
-git diff --stat main...HEAD    # 변경 범위
+git diff --stat develop...HEAD # 변경 범위
 ```
 
 - `compileJava`는 파생 쿼리명 오타(`findAllByAcountId`)를 잡지 못합니다. 이는 **컨텍스트 부팅 시점**에 실패하므로 `test`까지 돌려야 합니다.
