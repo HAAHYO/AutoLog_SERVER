@@ -29,7 +29,7 @@
 | POST | `/api/v1/accounts/deposits` | 모의 충전 (KRW) `{"amount":"50000"}` | X-User-Id, Idempotency-Key | 201 |
 | POST | `/api/v1/orders/market` | 시장가 매수 `{"targetCurrency":"USD","krwAmount":"136500"}` | X-User-Id, Idempotency-Key | 201 |
 
-주요 실패: 400(`C001` 입력, `U001` X-User-Id, `I001` Idempotency-Key, `O001` 통화), 409(`I002` 같은 키 처리 중, `C004` 동시 수정), 422(`A002` 잔액 부족, `I003` 키 재사용, `O002` 금액 너무 작음), 503(`R002` 시세 없음)
+주요 실패: 400(`C001` 입력, `U001` X-User-Id, `I001` Idempotency-Key, `O001` 통화), 409(`I002` 같은 키 처리 중, `C004` 동시 수정), 422(`A002` 잔액 부족, `A005` 잔액 한도 초과, `I003` 키 재사용, `O002` 금액 너무 작음), 503(`R002` 시세 없음)
 
 ## 기능 현황 (PRODUCT.md의 MVP 4단계)
 

@@ -118,7 +118,7 @@
 | executed_at | DATETIME(6) NULL | |
 | version | BIGINT | `@Version` |
 
-- 시장가 매수는 한 트랜잭션에서 주문 생성 → 원장 전기(5줄, 스프레드 수익이 0이면 4줄) → `complete()`를 합니다. 잔액이 부족하면 트랜잭션 전체가 롤백되어 **주문 행이 남지 않습니다**(즉시 주문이라 FAILED를 남기지 않음, 응답 422).
+- 시장가 매수는 한 트랜잭션에서 원장 전기(5줄, 스프레드 수익이 0이면 4줄) → 주문 생성·`complete()`·INSERT 순서로 합니다. 주문 INSERT를 전기 뒤에 두는 이유는, `fx_orders` → `accounts` 외래키의 공유 락이 계좌 UPDATE보다 먼저 걸리면 MySQL 데드락이 나기 때문입니다. 잔액이 부족하면 트랜잭션 전체가 롤백되어 **주문 행이 남지 않습니다**(즉시 주문이라 FAILED를 남기지 않음, 응답 422).
 - 금액 계산은 `MarketBuyCalculator`: 외화 = krwAmount × rateUnit / 적용환율(내림), 포지션 KRW = 외화 × 기준율 / rateUnit(내림), 스프레드 수익 = 나머지.
 - 멱등성 키는 `fx_orders`가 아니라 `idempotency_keys`에서 관리합니다.
 
