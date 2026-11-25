@@ -73,8 +73,12 @@ Kafka와 Redis 없이도 검증할 수 있는 **원장 핵심**부터 쌓고, �
 | `feat/rate-streaming` | 6 | Mock Market, `fx-rate-topic`, Redis 최신 시세, SSE |
 | `feat/limit-order` | 7~9 | 지정가 주문, ZSet 매칭, `fx-order-matched` 체결 컨슈머, 분산 락, DLQ·FAILED |
 | `test/load` | 10 | 동시성 통합 테스트, k6 |
+| `feat/external-collector` | 11 | 외부 환율 API Collector (한국수출입은행 등) |
+| `chore/monitoring` | 11 | Prometheus/Grafana |
+| `feat/auth` | 11 | `user` 도메인, 회원·인증, Spring Security (Q8 결정 후) |
+| `chore/harness` | — | 하네스, 규칙 문서, 프로젝트 구조처럼 기능과 무관한 정비 |
 
-진행하면서 묶음이 너무 커지면(예: PR 하나에 파일 40개 이상), 사용자와 상의해 둘로 나눕니다.
+진행하면서 묶음이 너무 커지면(예: PR 하나에 파일 40개 이상), 사용자와 상의해 둘로 나눕니다. 어느 묶음에도 맞지 않는 요청이 오면 이 표에 묶음을 추가할지 사용자에게 물어봅니다.
 
 ## 알려진 이슈 / 결정 대기
 
