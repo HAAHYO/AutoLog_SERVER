@@ -12,8 +12,6 @@ import org.springframework.data.repository.query.Param;
 
 public interface LedgerEntryRepository extends JpaRepository<LedgerEntry, Long> {
 
-	boolean existsByTxGroupId(String txGroupId);
-
 	List<LedgerEntry> findAllByTxGroupIdOrderByIdAsc(String txGroupId);
 
 	Optional<LedgerEntry> findTopByAccountIdOrderByIdDesc(Long accountId);
