@@ -68,6 +68,8 @@ description: "AutoLog 서버의 JPA 엔티티·리포지토리·서비스 구현
 - 변경은 dirty checking에 맡기고, `save()`는 새 엔티티에만 호출합니다.
 - **같은 클래스 안에서 다른 메서드를 호출(self-invocation)하면 그 메서드의 `@Transactional`은 적용되지 않습니다.** 트랜잭션을 분리해야 한다면 별도 빈으로 뺍니다.
 - 외부 API 호출(환율 공급자)은 트랜잭션 **밖**에서 합니다. 트랜잭션 안에서 네트워크 대기를 하면 DB 커넥션을 붙잡고 있게 됩니다.
+- 분산 락이 필요한 쓰기는 **Facade(락) → TxService(@Transactional)** 두 빈으로 나눕니다. 락은 반드시 커밋 뒤에 풉니다(`kafka-redis-pipeline` 참고).
+- `@Version` 충돌(`ObjectOptimisticLockingFailureException`)은 재시도 대상입니다. 재시도 위치(Facade, 컨슈머 에러 핸들러)를 정하고, 무한 재시도를 막습니다.
 
 ## 도메인 이벤트
 
