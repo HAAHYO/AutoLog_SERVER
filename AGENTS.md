@@ -180,8 +180,8 @@ com.autolog.server
 
 | 파일 | 내용 |
 |------|------|
-| `docs/PRODUCT.md` | 제품 개요, 핵심 시나리오, 미결정 제품 질문 |
-| `docs/DOMAIN-MODEL.md` | 도메인(애그리거트) 초안, 주문 상태 머신, 원장 불변식 |
+| `docs/PRODUCT.md` | 기획: 시스템 구성, 기술 스택, MVP 4단계, 핵심 테이블, 미결정 질문 |
+| `docs/DOMAIN-MODEL.md` | 테이블 설계, 원장 모델 A/B, 주문 상태 머신, Redis 키, 체결 흐름 |
 | `docs/IMPLEMENTATION-STATUS.md` | 스펙과 코드의 차이, 구현 순서, 알려진 이슈 |
 | `.claude/skills/*/SKILL.md` | 상세 규칙 (일반 마크다운이라 어떤 도구에서도 읽을 수 있음) |
 
