@@ -8,10 +8,10 @@
 |------|------|------|
 | Spring Boot 4.2.0 / Java 17 프로젝트 | `build.gradle` | Web MVC, JPA, Validation, Actuator, Lombok — 4.2 유지로 결정 (Q1) |
 | 프로필 설정 | `application.yml`, `application-local.yml`, `src/test/resources/application-test.yml` | local은 MySQL(`ddl-auto: update`), test는 H2 |
-| JPA Auditing + `BaseTimeEntity` | `global/config`, `global/entity` | `createdAt`, `updatedAt` (`LocalDateTime`) |
+| JPA Auditing + `BaseTimeEntity` | `global/config`, `global/entity` | `createdAt`, `updatedAt` (`Instant`, UTC) |
 | 공통 예외 처리 | `global/exception` | `ErrorCode`, `BusinessException`, `ErrorResponse`, `GlobalExceptionHandler` |
 | 헬스 체크 | `GET /actuator/health` | |
-| 테스트 | `AutologServerApplicationTests.contextLoads()` | 이것 하나뿐 |
+| 테스트 | `contextLoads()`, `BaseTimeEntityTest`(감사 시각 자동 기록, H2) | |
 | CI | `.github/workflows/ci.yml` | develop·main 대상 PR과 푸시 시 `./gradlew build` |
 | 하네스 | `AGENTS.md`, `CLAUDE.md`, `.claude/` | |
 
@@ -46,7 +46,7 @@
 Kafka와 Redis 없이도 검증할 수 있는 **원장 핵심**부터 쌓고, 비동기 계층은 그 위에 올립니다. 비동기 계층에서 버그가 났을 때 원장 쪽이 이미 검증되어 있으면 원인을 좁히기 쉽기 때문입니다.
 
 ```
-0. BaseTimeEntity → Instant (이슈 #1)  ※ Q1(Boot 4.2 유지), Q2(원장 모델 B)는 결정됨
+0. ~~BaseTimeEntity → Instant (이슈 #1)~~ 완료  ※ Q1(Boot 4.2 유지), Q2(원장 모델 B)는 결정됨
 1. CurrencyCode + AppliedRateCalculator (순수 로직 + 단위 테스트)
 2. accounts + ledger_entries + 균형·balance_after 검증 + 대사 쿼리
 3. 모의 충전 + 즉시 환전(MARKET) API — DB 락(@Version)만으로 먼저 완성
@@ -64,7 +64,7 @@ Kafka와 Redis 없이도 검증할 수 있는 **원장 핵심**부터 쌓고, �
 
 | # | 내용 | 영향 | 제안 |
 |---|------|------|------|
-| 1 | `BaseTimeEntity`가 `LocalDateTime`을 쓰는데, 컨벤션은 `Instant`(UTC)임. `hibernate.jdbc.time_zone: UTC` 설정과 섞이면 시각이 9시간 어긋나 보일 수 있음 | 감사 시각, `ledger_entries.created_at` | 첫 엔티티를 만들기 전에 `Instant`로 변경 |
+| 1 | ~~`BaseTimeEntity`가 `LocalDateTime`을 사용~~ → **`Instant`로 변경 (2026-11-25)** | 감사 시각 | MySQL에서 실제 컬럼 타입(DATETIME(6) 여부)은 아직 미확인 — 첫 MySQL 실행 때 확인 |
 | 2 | ~~Spring Boot 4.2.0 vs 기획의 3.x~~ → **4.2 유지로 결정 (2026-11-25)** | 의존성마다 Boot 4 호환 버전을 골라야 함 | 의존성을 추가할 때 문서로 호환성 확인 |
 | 3 | 마이그레이션 도구 없음 (`ddl-auto: update`) | 이름·타입 변경이 조용히 반영되지 않음 | 원장 스키마가 확정되면 Flyway 도입을 검토 |
 | 4 | 테스트가 `contextLoads()` 하나뿐 | 동작 검증 수단이 없음 | 1단계부터 순수 단위 테스트 작성 |
