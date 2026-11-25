@@ -29,7 +29,13 @@
 | 빌드 | Gradle Groovy DSL, `./gradlew` |
 | 기타 | Lombok, DevTools |
 
-**아직 클래스패스에 없는 것:** Spring Security, JWT, Swagger/springdoc, Flyway/Liquibase, Testcontainers, 정적 분석 도구(Checkstyle/Spotless). 필요하면 의존성 추가를 **제안**하세요. 없는 라이브러리를 전제로 코드를 쓰면 안 됩니다.
+**도입 예정이지만 아직 없는 것**: QueryDSL, Redis + Redisson, Apache Kafka(Spring Kafka), Docker Compose, Testcontainers, k6, (선택) Prometheus/Grafana
+
+**계획에 없는 것**: Spring Security/JWT(인증 방식 미결정), Swagger, Flyway
+
+필요하면 의존성 추가를 **제안**하세요. 없는 라이브러리를 전제로 코드를 쓰면 안 됩니다.
+
+> **Boot 버전 미결정 (PRODUCT Q1)**: 기획은 Spring Boot 3.x인데 현재 4.2.0으로 세팅되어 있습니다. QueryDSL, Redisson, Spring Kafka를 추가하기 전에 호환성을 확인하고, 버전을 결정한 뒤 진행합니다.
 
 ## 검증
 
