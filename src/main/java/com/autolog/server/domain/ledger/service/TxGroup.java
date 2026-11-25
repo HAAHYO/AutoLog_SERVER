@@ -4,6 +4,7 @@ import com.autolog.server.domain.ledger.entity.EntryType;
 import com.autolog.server.global.exception.BusinessException;
 import com.autolog.server.global.exception.ErrorCode;
 import com.autolog.server.global.money.CurrencyCode;
+import com.autolog.server.global.money.FxRoundingPolicy;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.EnumMap;
@@ -16,6 +17,7 @@ import java.util.Map;
  * <p>{@link Builder#build()} 시점에 불변식을 검증한다(원장 모델 B).
  * <ul>
  *   <li>라인은 2개 이상, 금액은 0보다 크고 통화의 최종 금액 자릿수 이내</li>
+ *   <li>적용환율이 있으면 0보다 크고 소수 8자리 이내 (DB에서 조용히 반올림되지 않도록)</li>
  *   <li>통화별로 Σ DEBIT = Σ CREDIT (허용 오차 없음)</li>
  * </ul>
  */
@@ -102,6 +104,10 @@ public final class TxGroup {
 			}
 			if (!line.currency().fitsScale(line.amount())) {
 				throw invalid("통화 자릿수를 넘는 금액입니다: " + line);
+			}
+			BigDecimal rate = line.appliedRate();
+			if (rate != null && (rate.signum() <= 0 || rate.stripTrailingZeros().scale() > FxRoundingPolicy.RATE_SCALE)) {
+				throw invalid("적용환율은 0보다 크고 소수 " + FxRoundingPolicy.RATE_SCALE + "자리 이내여야 합니다: " + line);
 			}
 		}
 
