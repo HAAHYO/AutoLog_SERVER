@@ -29,7 +29,18 @@ com.autolog.server
 ```
 
 - 도메인 패키지명은 단수 소문자를 씁니다: `rate`, `account`, `ledger`, `order`, `user`
-- 외부 API 클라이언트(환율 공급자 등)는 해당 도메인의 `client/` 패키지에 둡니다.
+- 도메인 안에 추가로 둘 수 있는 하위 패키지:
+
+  | 패키지 | 내용 |
+  |--------|------|
+  | `client/` | 외부 API 클라이언트 (환율 공급자) |
+  | `messaging/` | Kafka 프로듀서, `@KafkaListener` 어댑터, 이벤트 record |
+  | `cache/` | Redis 접근 (최신 시세, ZSet 매칭 인덱스) |
+  | `facade/` | 분산 락을 잡고 트랜잭션 서비스를 호출하는 Facade (`kafka-redis-pipeline` 참고) |
+  | `scheduler/` | `@Scheduled` 작업 (Collector, Mock Market) |
+
+- `@KafkaListener`, SSE 엔드포인트, 스케줄러는 **컨트롤러처럼 얇게** 두고 서비스를 호출합니다.
+- Kafka 토픽명, Redis 키 접두사, 락 키는 `global/config`의 상수나 `@ConfigurationProperties` 한곳에서 관리합니다.
 - 여러 도메인이 함께 쓰는 유틸은 `global/` 아래에 둡니다. 단, "혹시 쓸지도 몰라서" 미리 만들지는 않습니다.
 
 ## 네이밍
