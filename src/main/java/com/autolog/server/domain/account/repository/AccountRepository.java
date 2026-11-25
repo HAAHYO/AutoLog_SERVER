@@ -14,4 +14,6 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
 	Optional<Account> findByUserIdIsNullAndTypeAndCurrency(AccountType type, CurrencyCode currency);
 
 	List<Account> findAllByIdInOrderByIdAsc(List<Long> ids);
+
+	List<Account> findAllByUserIdOrderByIdAsc(Long userId);
 }
