@@ -63,9 +63,9 @@ Kafka와 Redis 없이도 검증할 수 있는 **원장 핵심**부터 쌓고, �
 
 ## 브랜치 계획
 
-브랜치와 PR은 아래 묶음 단위로 만듭니다. 묶음 안의 작은 작업은 커밋으로 나눕니다.
+브랜치와 PR은 아래 묶음 단위로 만듭니다. 묶음 안의 작은 작업은 커밋으로 나눕니다. "추천 순서 번호"는 바로 위 "추천 구현 순서"의 0~11 번호입니다. "기능 현황" 표의 단계(0, ①~④)와는 다른 번호입니다.
 
-| 브랜치 | 포함 단계 | 내용 |
+| 브랜치 | 추천 순서 번호 | 내용 |
 |--------|-----------|------|
 | `feat/ledger-core` | 0~2 | `BaseTimeEntity` → `Instant`, `CurrencyCode`, 적용환율 계산기, `accounts`, `ledger_entries`(모델 B, 시스템 계정), 균형·balance_after 검증, 대사 |
 | `feat/exchange` | 3~4 | 모의 충전, 즉시 환전(MARKET) API, `idempotency_keys` + `Idempotency-Key` |
