@@ -16,7 +16,10 @@
 
 후속 요청("QA 다시 돌려줘", "QA에서 나온 거 고쳐줘")도 orchestrator로 처리하고, 기존 `_workspace/`를 이어서 씁니다.
 
-**항상 적용:** Java 파일을 쓰거나 리뷰하기 전에 `java-spring-conventions` 스킬을 읽습니다. 금액, 환율, 원장, 주문 체결 코드를 건드릴 때는 `money-ledger` 스킬도 함께 읽습니다.
+**항상 적용:**
+- Java 파일을 쓰거나 리뷰하기 전에 `java-spring-conventions` 스킬을 읽습니다.
+- 금액, 환율, 원장, 주문 체결 코드를 건드릴 때는 `money-ledger` 스킬을 함께 읽습니다.
+- Kafka, Redis, 분산 락, SSE, 스케줄러 코드를 건드릴 때는 `kafka-redis-pipeline` 스킬을 함께 읽습니다.
 
 ### 팀 구성
 
