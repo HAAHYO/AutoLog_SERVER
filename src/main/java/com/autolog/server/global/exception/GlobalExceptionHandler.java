@@ -4,8 +4,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.dao.PessimisticLockingFailureException;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
@@ -42,6 +44,23 @@ public class GlobalExceptionHandler {
 	public ResponseEntity<ErrorResponse> handleValidationException(MethodArgumentNotValidException e) {
 		return ResponseEntity.status(ErrorCode.INVALID_INPUT.getStatus())
 				.body(ErrorResponse.of(ErrorCode.INVALID_INPUT, e.getBindingResult()));
+	}
+
+	/** 필수 헤더 누락. Idempotency-Key는 전용 코드로 구분한다. */
+	@ExceptionHandler(MissingRequestHeaderException.class)
+	public ResponseEntity<ErrorResponse> handleMissingHeader(MissingRequestHeaderException e) {
+		ErrorCode errorCode = "Idempotency-Key".equalsIgnoreCase(e.getHeaderName())
+				? ErrorCode.IDEMPOTENCY_KEY_MISSING
+				: ErrorCode.INVALID_INPUT;
+		return ResponseEntity.status(errorCode.getStatus())
+				.body(ErrorResponse.of(errorCode, errorCode.getMessage()));
+	}
+
+	/** JSON 문법 오류, 알 수 없는 enum 값, 숫자로 읽을 수 없는 금액 등. */
+	@ExceptionHandler(HttpMessageNotReadableException.class)
+	public ResponseEntity<ErrorResponse> handleNotReadable(HttpMessageNotReadableException e) {
+		return ResponseEntity.status(ErrorCode.INVALID_INPUT.getStatus())
+				.body(ErrorResponse.of(ErrorCode.INVALID_INPUT, "요청 본문을 읽을 수 없습니다."));
 	}
 
 	@ExceptionHandler(HttpRequestMethodNotSupportedException.class)
