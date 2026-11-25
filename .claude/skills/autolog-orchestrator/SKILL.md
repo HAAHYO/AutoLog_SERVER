@@ -40,7 +40,7 @@ description: "AutoLog 백엔드의 큰 작업을 에이전트 팀(domain-enginee
 1. `docs/PRODUCT.md`와 `docs/IMPLEMENTATION-STATUS.md`를 읽습니다.
    - 요청이 미결정 제품 질문이나 아직 없는 기능에 의존하는지 확인합니다.
    - 의존한다면 **팀을 띄우기 전에** 사용자에게 알립니다.
-2. 브랜치를 확인합니다. `main`이라면 `<type>/<kebab-주제>` 브랜치를 만들고 사용자에게 알립니다.
+2. 브랜치를 확인합니다. `develop`이나 `main`이라면 최신 `develop`에서 `<type>/<kebab-주제>` 브랜치를 만들고 사용자에게 알립니다.
 3. `_workspace/00_input/request.md`에 요청과 제약을 적습니다.
 4. `_workspace/00_input/baseline.md`에 `git rev-parse HEAD`와 `git status --short` 결과를 기록합니다.
 5. 관련 기존 소스를 읽어 둡니다. 에이전트 프롬프트에 실제 파일 경로를 적기 위해서입니다.
