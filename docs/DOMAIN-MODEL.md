@@ -96,22 +96,31 @@
 
 > 위 표에서 "사용자 계정은 DEBIT이 출금"이라는 부호 관례는 기획 원안(원화 출금 = DEBIT)을 따랐습니다. 회계상 자산 관점과는 반대이므로, 구현할 때 관례를 하나로 확정하고 여기에 적습니다.
 
-## fx_orders
+## fx_orders (구현됨: 시장가 매수)
 
 | 컬럼 | 타입 | 비고 |
 |------|------|------|
 | id | BIGINT PK | |
-| account_id | BIGINT | 출금 계좌(KRW) |
-| target_currency | VARCHAR(3) | 원안에는 없음 — **추가 필요** (어떤 외화를 살지) |
+| user_id | BIGINT | 인덱스 `(user_id, id)` |
+| account_id | BIGINT FK | 출금 계좌(매수면 KRW) |
 | order_type | VARCHAR(10) | MARKET / LIMIT |
-| side | VARCHAR(4) | BUY / SELL — Q7 (매도를 지원하지 않으면 생략) |
-| target_rate | DECIMAL(19,8) | LIMIT일 때만 값이 있음 (MARKET이면 NULL) |
+| side | VARCHAR(4) | BUY (SELL은 Q7 결정 후) |
+| target_currency | VARCHAR(3) | 원안에 없던 컬럼(추가함) |
+| target_rate | DECIMAL(19,8) NULL | LIMIT만. MARKET은 NULL |
 | krw_amount | DECIMAL(19,4) | |
-| status | VARCHAR(20) | PENDING / COMPLETED / FAILED (+ CANCELLED / EXPIRED는 Q5) |
-| failure_reason | VARCHAR(50) | FAILED일 때 사유 (INSUFFICIENT_BALANCE 등) |
-| executed_rate, executed_at, tx_group_id | | 체결 결과 기록 |
+| status | VARCHAR(20) | PENDING / COMPLETED / FAILED |
+| failure_reason | VARCHAR(50) NULL | FAILED일 때 사유 |
+| base_rate, applied_rate | DECIMAL(19,8) NULL | 체결 시 기준율·적용환율 |
+| spread_rate, preferential_rate | DECIMAL(7,6) NULL | 체결 시 스프레드율·우대율 |
+| rate_source, rate_observed_at | VARCHAR(30), DATETIME(6) NULL | 체결에 쓴 시세의 출처와 관측 시각 |
+| foreign_amount | DECIMAL(19,4) NULL | 받은 외화 |
+| tx_group_id | VARCHAR(36) NULL UNIQUE | 체결 원장 묶음. 같은 주문이 두 번 전기되지 않게 함 |
+| executed_at | DATETIME(6) NULL | |
 | version | BIGINT | `@Version` |
-| idempotency_key | VARCHAR(64) | UNIQUE |
+
+- 시장가 매수는 한 트랜잭션에서 주문 생성 → 원장 전기(5줄, 스프레드 수익이 0이면 4줄) → `complete()`를 합니다. 잔액이 부족하면 트랜잭션 전체가 롤백되어 **주문 행이 남지 않습니다**(즉시 주문이라 FAILED를 남기지 않음, 응답 422).
+- 금액 계산은 `MarketBuyCalculator`: 외화 = krwAmount × rateUnit / 적용환율(내림), 포지션 KRW = 외화 × 기준율 / rateUnit(내림), 스프레드 수익 = 나머지.
+- 멱등성 키는 `fx_orders`가 아니라 `idempotency_keys`에서 관리합니다.
 
 ### 상태 머신
 
@@ -128,15 +137,19 @@ LIMIT:  PENDING ──(목표환율 도달, 체결 성공)──▶ COMPLETED
 - 전이는 엔티티 메서드로만 합니다: `complete(rate, txGroupId, now)`, `fail(reason, now)`, `cancel(now)`
 - **분할 매수(Q3)**: 분할을 도입하면 `fx_orders` 1건 아래에 `fx_order_tranches`(회차별 목표환율, 금액, 상태) 테이블을 두고, **ZSet 멤버와 체결의 단위를 회차(tranche)로** 하는 구조를 권장합니다. 주문의 상태는 회차 상태들을 모아 결정합니다(PARTIALLY_COMPLETED 추가 검토).
 
-## idempotency_keys
+## idempotency_keys (구현됨)
 
 | 컬럼 | 타입 | 비고 |
 |------|------|------|
-| idem_key | VARCHAR(64) PK | 클라이언트가 보낸 UUID (사용자 범위로 둘지는 Q10) |
-| request_hash | CHAR(64) | 요청 본문의 SHA-256. **같은 키에 다른 본문**이 오면 422로 거부 |
-| response_status, response_body | INT, JSON/TEXT | 처음 응답을 그대로 재전송하기 위해 저장 |
-| status | VARCHAR(20) | IN_PROGRESS / COMPLETED — 처리 중에 같은 키가 또 오면 409 |
-| created_at | DATETIME(6) | TTL 정리 기준 |
+| id | BIGINT PK | |
+| user_id, idem_key | BIGINT, VARCHAR(64) | UNIQUE `(user_id, idem_key)`. 키는 **사용자 범위**에서 유일 (Q10 보수적 가정) |
+| request_hash | VARCHAR(64) | 요청 본문 JSON의 SHA-256. 같은 키에 다른 본문이면 422 (`I003`) |
+| response_body | LOB NULL | 처음 응답 JSON. 같은 키·같은 본문이면 그대로 재전송 |
+| created_at | DATETIME(6) | TTL 정리 기준 (정리 작업과 보관 기간은 Q10 미결정) |
+
+- 레코드는 **비즈니스 처리와 같은 트랜잭션** 맨 앞에서 INSERT합니다. 같은 키가 동시에 오면 늦은 쪽은 먼저 온 트랜잭션이 끝날 때까지 기다렸다가 유니크 위반으로 실패하고 409(`I002`)를 받습니다. 재시도하면 처음 응답을 받습니다.
+- 처리가 실패해 롤백되면 레코드도 사라집니다. 그래서 실패한 요청(예: 잔액 부족)은 같은 키로 다시 시도할 수 있습니다. **실패 응답은 저장하지 않습니다.**
+- 키 형식은 `[A-Za-z0-9_-]{1,64}`입니다. 헤더가 없거나 형식이 틀리면 400(`I001`)입니다.
 
 ## Redis 키 설계 (초안)
 
