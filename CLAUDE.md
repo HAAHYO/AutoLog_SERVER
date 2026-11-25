@@ -42,7 +42,8 @@
 | `java-spring-conventions` | Java/Spring 코딩 컨벤션 전체 |
 | `api-contract` | 엔드포인트 계약(경로, DTO, 실패 표) 작성 |
 | `jpa-domain` | 엔티티, 쿼리, 트랜잭션, 스키마 제약 |
-| `money-ledger` | 금액, 환율, 복식부기, 체결 동시성 규칙 |
+| `money-ledger` | 금액, 적용환율, 복식부기 원장, 주문 상태 전이 |
+| `kafka-redis-pipeline` | Kafka, Redis ZSet 매칭, 분산 락, 멱등성 키, DLQ, SSE |
 | `qa-verify` | 레이어 간 교차 검증 체크리스트 |
 | `git-commit-convention` | 커밋 단위와 메시지 규칙 |
 | `github-pr-author` | 셀프 PR 작성 |
@@ -58,6 +59,7 @@
   - `.codex/` 스킬 사본
 - **더한 것:**
   - `money-ledger` 스킬 (이 프로젝트의 핵심 위험 영역)
+  - `kafka-redis-pipeline` 스킬 (비동기·분산 정합성)
   - H2와 MySQL 차이에 대한 검증 규칙
 - **보류한 것:**
   - 보안 스킬과 에이전트: Spring Security를 도입할 때 `security-guard` 스킬과 함께 추가합니다.
