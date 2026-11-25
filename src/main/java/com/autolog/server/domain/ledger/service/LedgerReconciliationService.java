@@ -4,6 +4,7 @@ import com.autolog.server.domain.account.entity.Account;
 import com.autolog.server.domain.account.repository.AccountRepository;
 import com.autolog.server.domain.ledger.entity.EntryType;
 import com.autolog.server.domain.ledger.entity.LedgerEntry;
+import com.autolog.server.domain.ledger.repository.CurrencyTotal;
 import com.autolog.server.domain.ledger.repository.LedgerEntryRepository;
 import com.autolog.server.global.exception.BusinessException;
 import com.autolog.server.global.exception.ErrorCode;

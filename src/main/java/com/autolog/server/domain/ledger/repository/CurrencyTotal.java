@@ -1,4 +1,4 @@
-package com.autolog.server.domain.ledger.service;
+package com.autolog.server.domain.ledger.repository;
 
 import com.autolog.server.domain.ledger.entity.EntryType;
 import com.autolog.server.global.money.CurrencyCode;

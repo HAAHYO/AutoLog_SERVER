@@ -2,7 +2,6 @@ package com.autolog.server.domain.ledger.repository;
 
 import com.autolog.server.domain.ledger.entity.EntryType;
 import com.autolog.server.domain.ledger.entity.LedgerEntry;
-import com.autolog.server.domain.ledger.service.CurrencyTotal;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
@@ -25,7 +24,7 @@ public interface LedgerEntryRepository extends JpaRepository<LedgerEntry, Long> 
 	BigDecimal sumNetByAccountId(@Param("accountId") Long accountId, @Param("credit") EntryType credit);
 
 	@Query("""
-			select new com.autolog.server.domain.ledger.service.CurrencyTotal(e.currency, e.entryType, sum(e.amount))
+			select new com.autolog.server.domain.ledger.repository.CurrencyTotal(e.currency, e.entryType, sum(e.amount))
 			from LedgerEntry e
 			group by e.currency, e.entryType
 			order by e.currency, e.entryType
