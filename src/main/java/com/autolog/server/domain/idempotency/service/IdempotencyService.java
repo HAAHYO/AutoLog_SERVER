@@ -72,7 +72,8 @@ public class IdempotencyService {
 		return jsonMapper.readValue(record.getResponseBody(), responseType);
 	}
 
-	private void validateKey(String idemKey) {
+	/** 키 형식 검사. 계좌 개설처럼 되돌리기 어려운 준비 작업보다 먼저 호출할 수 있게 공개한다. */
+	public void validateKey(String idemKey) {
 		if (idemKey == null || !KEY_PATTERN.matcher(idemKey).matches()) {
 			throw new BusinessException(ErrorCode.IDEMPOTENCY_KEY_MISSING);
 		}

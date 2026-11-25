@@ -1,6 +1,7 @@
 package com.autolog.server.domain.order.facade;
 
 import com.autolog.server.domain.account.service.AccountService;
+import com.autolog.server.domain.idempotency.service.IdempotencyService;
 import com.autolog.server.domain.order.dto.request.MarketBuyRequest;
 import com.autolog.server.domain.order.dto.response.MarketOrderResponse;
 import com.autolog.server.domain.order.service.MarketOrderService;
@@ -20,11 +21,13 @@ public class MarketOrderFacade {
 
 	private final AccountService accountService;
 	private final MarketOrderService marketOrderService;
+	private final IdempotencyService idempotencyService;
 
 	public MarketOrderResponse buy(Long userId, String idemKey, MarketBuyRequest request) {
 		if (request.targetCurrency() == CurrencyCode.KRW) {
 			throw new BusinessException(ErrorCode.ORDER_CURRENCY_NOT_SUPPORTED, "KRW로 KRW를 살 수 없습니다.");
 		}
+		idempotencyService.validateKey(idemKey);
 		Long krwAccountId = accountService.getOrOpenUserAccountId(userId, CurrencyCode.KRW);
 		Long foreignAccountId = accountService.getOrOpenUserAccountId(userId, request.targetCurrency());
 		return marketOrderService.buy(userId, krwAccountId, foreignAccountId, idemKey, request);

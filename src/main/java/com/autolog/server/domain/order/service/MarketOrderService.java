@@ -57,9 +57,6 @@ public class MarketOrderService {
 		RateQuote quote = rateProvider.getQuote(target);
 		MarketBuyCalculator.Result result = marketBuyCalculator.calculate(request.krwAmount(), quote, preferentialRate);
 
-		Account krwAccount = accountRepository.getReferenceById(krwAccountId);
-		FxOrder order = fxOrderRepository.save(FxOrder.marketBuy(userId, krwAccount, target, request.krwAmount()));
-
 		String txGroupId = UUID.randomUUID().toString();
 		TxGroup.Builder lines = TxGroup.builder(txGroupId)
 				.debit(krwAccountId, CurrencyCode.KRW, request.krwAmount(), result.appliedRate())
@@ -73,10 +70,13 @@ public class MarketOrderService {
 				.credit(foreignAccountId, target, result.foreignAmount(), result.appliedRate());
 		ledgerService.post(lines.build());
 
-		Instant now = Instant.now(clock);
+		// 주문 INSERT는 원장 전기(계좌 UPDATE) 뒤에 한다. fx_orders → accounts 외래키가 계좌 행에 공유 락을 거는데,
+		// UPDATE보다 먼저 걸리면 같은 사용자의 동시 매수끼리 MySQL 데드락이 난다(LedgerService.post와 같은 이유).
+		Account krwAccount = accountRepository.getReferenceById(krwAccountId);
+		FxOrder order = FxOrder.marketBuy(userId, krwAccount, target, request.krwAmount());
 		order.complete(new FxOrder.Execution(quote.baseRate(), result.appliedRate(), quote.spreadRate(), preferentialRate,
-				quote.source(), quote.observedAt(), result.foreignAmount(), txGroupId), now);
-		fxOrderRepository.flush();
+				quote.source(), quote.observedAt(), result.foreignAmount(), txGroupId), Instant.now(clock));
+		fxOrderRepository.saveAndFlush(order);
 
 		return MarketOrderResponse.of(order, balanceOf(krwAccountId), balanceOf(foreignAccountId));
 	}

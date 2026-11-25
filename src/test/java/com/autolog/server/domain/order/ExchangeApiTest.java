@@ -75,6 +75,28 @@ class ExchangeApiTest {
 	}
 
 	@Test
+	void 같은_금액을_다른_표기로_다시_보내도_같은_요청으로_본다() throws Exception {
+		long userId = USER_SEQ.incrementAndGet();
+
+		String first = deposit(userId, "dep-1", "1000").andExpect(status().isCreated())
+				.andReturn().getResponse().getContentAsString();
+		String second = deposit(userId, "dep-1", "1000.00").andExpect(status().isCreated())
+				.andReturn().getResponse().getContentAsString();
+
+		assertThat(second).isEqualTo(first);
+		assertThat(krwBalance(userId)).isEqualTo("1000");
+	}
+
+	@Test
+	void 잘못된_키로_요청하면_계좌를_만들지_않는다() throws Exception {
+		long userId = USER_SEQ.incrementAndGet();
+
+		marketBuy(userId, "bad key!", "USD", "10000").andExpect(status().isBadRequest());
+
+		assertThat(accountRepository.findAllByUserIdOrderByIdAsc(userId)).isEmpty();
+	}
+
+	@Test
 	void 같은_키로_다른_본문을_보내면_422로_거부한다() throws Exception {
 		long userId = USER_SEQ.incrementAndGet();
 		deposit(userId, "dep-1", "50000").andExpect(status().isCreated());

@@ -17,7 +17,7 @@ public enum ErrorCode {
 	ACCOUNT_NOT_FOUND(HttpStatus.NOT_FOUND, "A001", "계좌를 찾을 수 없습니다."),
 	INSUFFICIENT_BALANCE(HttpStatus.UNPROCESSABLE_CONTENT, "A002", "잔액이 부족합니다."),
 	SYSTEM_ACCOUNT_MISSING(HttpStatus.INTERNAL_SERVER_ERROR, "A003", "서버 내부 오류가 발생했습니다."),
-	DEPOSIT_CURRENCY_NOT_SUPPORTED(HttpStatus.BAD_REQUEST, "A004", "지원하지 않는 충전 통화입니다."),
+	BALANCE_LIMIT_EXCEEDED(HttpStatus.UNPROCESSABLE_CONTENT, "A005", "계좌 잔액 한도를 넘습니다."),
 
 	LEDGER_UNBALANCED(HttpStatus.INTERNAL_SERVER_ERROR, "L001", "원장 처리 중 오류가 발생했습니다."),
 	LEDGER_INVALID_ENTRY(HttpStatus.INTERNAL_SERVER_ERROR, "L002", "원장 처리 중 오류가 발생했습니다."),
