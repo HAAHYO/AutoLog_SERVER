@@ -1,6 +1,6 @@
 # 구현 현황 — 스펙 vs 코드
 
-> 기능을 추가하거나 바꿀 때마다 이 문서를 함께 갱신합니다. 마지막 갱신: 2026-11-25 (브랜치 계획, 패키지 뼈대)
+> 기능을 추가하거나 바꿀 때마다 이 문서를 함께 갱신합니다. 마지막 갱신: 2026-11-25 (원장 핵심 구현)
 
 ## 현재 있는 것
 
@@ -11,7 +11,8 @@
 | JPA Auditing + `BaseTimeEntity` | `global/config`, `global/entity` | `createdAt`, `updatedAt` (`Instant`, UTC) |
 | 공통 예외 처리 | `global/exception` | `ErrorCode`, `BusinessException`, `ErrorResponse`, `GlobalExceptionHandler` |
 | 헬스 체크 | `GET /actuator/health` | |
-| 테스트 | `contextLoads()`, `BaseTimeEntityTest`(감사 시각 자동 기록, H2) | |
+| 테스트 | 41개: 적용환율·반올림·계좌·TxGroup 단위 테스트, 원장 전기·대사 `@DataJpaTest`, `BaseTimeEntityTest` | 통합 테스트는 H2 기준 |
+| 원장 핵심 | `global/money`, `domain/account`, `domain/ledger`, `domain/rate/service/AppliedRateCalculator` | HTTP 엔드포인트 없음 (서비스 계층까지) |
 | CI | `.github/workflows/ci.yml` | develop·main 대상 PR과 푸시 시 `./gradlew build` |
 | 하네스 | `AGENTS.md`, `CLAUDE.md`, `.claude/` | |
 | 도메인 패키지 뼈대 | `domain/{rate,account,ledger,order,idempotency}` | `package-info.java`만 있음 (클래스 없음) |
@@ -22,14 +23,14 @@
 |------|------|------|---------|
 | 0 | 인프라: Docker Compose (MySQL, Redis, Kafka) | 미구현 | 없음 |
 | 0 | 의존성: QueryDSL, Redisson, Spring Kafka, Testcontainers | 미구현 | Boot 4 호환 버전 확인 |
-| ① | `CurrencyCode` (KRW, USD, JPY, EUR) | 미구현 | JPY 기준 단위 결정 |
+| ① | `CurrencyCode` (KRW, USD, JPY, EUR) | **구현** (`global/money`, JPY 100엔당) | — |
 | ① | Mock Market 제너레이터 | 미구현 | 없음 |
 | ① | 외부 환율 API Collector | 미구현 | API 선정 |
 | ① | `fx-rate-topic` 발행/구독 → Redis 최신 시세 | 미구현 | Kafka, Redis |
 | ① | SSE 시세 스트림 | 미구현 | ① 시세 구독 |
-| ② | `accounts` (다통화 지갑, `@Version`) | 미구현 | 없음 |
-| ② | `ledger_entries` (tx_group, 통화별 균형 검증, balance_after) + 시스템 계정 | 미구현 | 없음 (모델 B 확정) |
-| ② | 적용환율 계산 (스프레드, 우대율) | 미구현 | Q4 공식 |
+| ② | `accounts` (다통화 지갑, `@Version`) | **구현** (엔티티·리포지토리. 계좌 개설 API 없음) | — |
+| ② | `ledger_entries` (tx_group, 통화별 균형 검증, balance_after) + 시스템 계정 | **구현** (`TxGroup`, `LedgerService.post`) | 시스템 계좌 시드는 `feat/exchange` |
+| ② | 적용환율 계산 (스프레드, 우대율) | **구현** (`AppliedRateCalculator`, `FxRoundingPolicy`) | — |
 | ② | 충전 (모의) | 미구현 | Q9 |
 | ② | 즉시 환전 (MARKET) | 미구현 | accounts, ledger, 적용환율, 멱등성 키 |
 | ③ | 지정가 주문 등록 / 조회 (`fx_orders`) | 미구현 | Q3 분할, Q5 취소·만료 |
@@ -38,7 +39,7 @@
 | ④ | `idempotency_keys` + `Idempotency-Key` 처리 | 미구현 | Q10 |
 | ④ | Redisson 계좌 락 + `@Version` | 미구현 | Redis |
 | ④ | DLQ, 재시도, FAILED 처리, 알림 | 미구현 | Kafka |
-| ④ | 대사(Reconciliation) 쿼리 / API | 미구현 | ledger |
+| ④ | 대사(Reconciliation) 쿼리 / API | 쿼리·서비스 **구현** (`LedgerReconciliationService`), API 미구현 | — |
 | — | k6 부하·동시성 테스트 | 미구현 | 위 기능 |
 | — | 회원, 인증 | 미구현 | Q8 |
 
@@ -91,3 +92,4 @@ Kafka와 Redis 없이도 검증할 수 있는 **원장 핵심**부터 쌓고, �
 | 5 | H2로 테스트 | MySQL 락, DECIMAL, `DATETIME(6)` 미검증 | 5단계에서 Testcontainers(MySQL, Redis, Kafka) 도입 |
 | 6 (#13) | 금액 JSON 직렬화 방식 미결정 (REST) | JS 대시보드에서 정밀도 손실 가능 | 첫 금액 API를 만들 때 결정 (Kafka 메시지는 문자열로 확정) |
 | 7 | Spring Security 없음 | 모든 엔드포인트가 공개 상태 | 인증 방식이 결정되면 도입 (Q8). 그 전에는 userId를 요청 파라미터나 헤더로 대신 받음 |
+| 8 | 시스템 계좌의 중복을 DB가 막지 못함. 유니크 제약 `(user_id, currency, type)`에서 시스템 계좌는 `user_id`가 NULL이고, MySQL은 NULL을 서로 다른 값으로 취급함 | 같은 종류·통화의 시스템 계좌가 여러 개 생기면 수익·포지션이 나뉘어 기록됨 | `feat/exchange`에서 시스템 계좌 시드를 만들 때, 시스템 계좌 전용 키 컬럼 또는 고정 시드 + 시작 시 검증으로 해결 |
