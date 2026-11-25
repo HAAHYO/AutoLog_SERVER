@@ -71,3 +71,4 @@
 | 날짜 | 변경 | 대상 | 이유 |
 |------|------|------|------|
 | 2026-11-25 | 최초 구축: 에이전트 3개, 스킬 8개, docs, CI, PR 템플릿 | 전체 | TaekBaeWatShong 하네스를 개인 프로젝트·Java·금융 도메인에 맞게 조정 |
+| 2026-11-25 | 기획 반영: `kafka-redis-pipeline` 스킬 추가, 원장 모델을 accounts/ledger_entries로 변경, QA 체크 9 추가 | docs, skills, agents | 사용자 기획서(Kafka, Redis ZSet, Redisson, 멱등성 키, DLQ, 스프레드·우대율)를 받음 |
