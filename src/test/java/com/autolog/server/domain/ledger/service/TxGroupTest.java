@@ -98,6 +98,30 @@ class TxGroupTest {
 	}
 
 	@Test
+	void 적용환율이_0_이하이거나_소수_8자리를_넘으면_거부한다() {
+		for (String rate : new String[] {"0", "-1365", "1365.123456789"}) {
+			assertThatThrownBy(() -> TxGroup.builder("tx-1")
+					.debit(POSITION_USD, CurrencyCode.USD, new BigDecimal("100"))
+					.credit(USER_USD, CurrencyCode.USD, new BigDecimal("100"), new BigDecimal(rate))
+					.build())
+					.as("appliedRate=%s", rate)
+					.isInstanceOf(BusinessException.class)
+					.extracting("errorCode")
+					.isEqualTo(ErrorCode.LEDGER_INVALID_ENTRY);
+		}
+	}
+
+	@Test
+	void 적용환율이_소수_8자리면_허용한다() {
+		TxGroup txGroup = TxGroup.builder("tx-1")
+				.debit(POSITION_USD, CurrencyCode.USD, new BigDecimal("100"))
+				.credit(USER_USD, CurrencyCode.USD, new BigDecimal("100"), new BigDecimal("1365.12345678"))
+				.build();
+
+		assertThat(txGroup.lines().get(1).appliedRate()).isEqualByComparingTo("1365.12345678");
+	}
+
+	@Test
 	void txGroupId가_비어_있으면_거부한다() {
 		assertThatThrownBy(() -> TxGroup.builder(" ")
 				.debit(POSITION_KRW, CurrencyCode.KRW, BigDecimal.ONE)
