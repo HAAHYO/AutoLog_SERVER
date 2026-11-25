@@ -112,6 +112,19 @@ gh pr edit <번호> --body-file <scratchpad>/pr-body.md
 ```
 
 ## 규칙
+## 릴리스 PR (develop → main, 요청 시)
+
+```bash
+git fetch origin
+git log --oneline origin/main..origin/develop     # 릴리스에 들어갈 내용
+gh pr create --base main --head develop   --title "chore: <마일스톤> 릴리스" --body-file <scratchpad>/release-body.md
+```
+
+- 본문의 "주요 작업 내용"에는 커밋이 아니라 **병합된 기능 PR 목록**(`#번호 제목`)을 적습니다.
+- 병합은 `--merge`로 하고 **`--delete-branch`를 붙이지 않습니다.** develop은 지우면 안 됩니다.
+- 병합한 뒤 태그를 붙일지(`v0.1.0` 등)는 사용자에게 물어봅니다.
+- `main`에만 있고 `develop`에 없는 커밋이 생기면(머지 커밋 외), 곧바로 `main` → `develop`으로 동기화합니다.
+
 
 - `main`에서 PR을 만들지 않습니다.
 - 브랜치 하나에는 PR 하나만 둡니다.
