@@ -65,18 +65,18 @@ Kafka와 Redis 없이도 검증할 수 있는 **원장 핵심**부터 쌓고, �
 
 브랜치와 PR은 아래 묶음 단위로 만듭니다. 묶음 안의 작은 작업은 커밋으로 나눕니다. "추천 순서 번호"는 바로 위 "추천 구현 순서"의 0~11 번호입니다. "기능 현황" 표의 단계(0, ①~④)와는 다른 번호입니다.
 
-| 브랜치 | 추천 순서 번호 | 내용 |
-|--------|-----------|------|
-| `feat/ledger-core` | 0~2 | `BaseTimeEntity` → `Instant`, `CurrencyCode`, 적용환율 계산기, `accounts`, `ledger_entries`(모델 B, 시스템 계정), 균형·balance_after 검증, 대사 |
-| `feat/exchange` | 3~4 | 모의 충전, 즉시 환전(MARKET) API, `idempotency_keys` + `Idempotency-Key` |
-| `chore/infra` | 5 | Docker Compose(MySQL, Redis, Kafka), QueryDSL·Redisson·Spring Kafka·Testcontainers 의존성 |
-| `feat/rate-streaming` | 6 | Mock Market, `fx-rate-topic`, Redis 최신 시세, SSE |
-| `feat/limit-order` | 7~9 | 지정가 주문, ZSet 매칭, `fx-order-matched` 체결 컨슈머, 분산 락, DLQ·FAILED |
-| `test/load` | 10 | 동시성 통합 테스트, k6 |
-| `feat/external-collector` | 11 | 외부 환율 API Collector (한국수출입은행 등) |
-| `chore/monitoring` | 11 | Prometheus/Grafana |
-| `feat/auth` | 11 | `user` 도메인, 회원·인증, Spring Security (Q8 결정 후) |
-| `chore/harness` | — | 하네스, 규칙 문서, 프로젝트 구조처럼 기능과 무관한 정비 |
+| 브랜치 | 추천 순서 번호 | 이슈 | 내용 |
+|--------|-----------|------|------|
+| `feat/ledger-core` | 0~2 | #5 | `BaseTimeEntity` → `Instant`, `CurrencyCode`, 적용환율 계산기, `accounts`, `ledger_entries`(모델 B, 시스템 계정), 균형·balance_after 검증, 대사 |
+| `feat/exchange` | 3~4 | #6 | 모의 충전, 즉시 환전(MARKET) API, `idempotency_keys` + `Idempotency-Key` |
+| `chore/infra` | 5 | #7 | Docker Compose(MySQL, Redis, Kafka), QueryDSL·Redisson·Spring Kafka·Testcontainers 의존성 |
+| `feat/rate-streaming` | 6 | #8 | Mock Market, `fx-rate-topic`, Redis 최신 시세, SSE |
+| `feat/limit-order` | 7~9 | #9 | 지정가 주문, ZSet 매칭, `fx-order-matched` 체결 컨슈머, 분산 락, DLQ·FAILED |
+| `test/load` | 10 | #10 | 동시성 통합 테스트, k6 |
+| `feat/external-collector` | 11 | — | 외부 환율 API Collector (한국수출입은행 등) |
+| `chore/monitoring` | 11 | — | Prometheus/Grafana |
+| `feat/auth` | 11 | — | `user` 도메인, 회원·인증, Spring Security (Q8 결정 후) |
+| `chore/harness` | — | — | 하네스, 규칙 문서, 프로젝트 구조처럼 기능과 무관한 정비 |
 
 진행하면서 묶음이 너무 커지면(예: PR 하나에 파일 40개 이상), 사용자와 상의해 둘로 나눕니다. 어느 묶음에도 맞지 않는 요청이 오면 이 표에 묶음을 추가할지 사용자에게 물어봅니다.
 
@@ -84,10 +84,10 @@ Kafka와 Redis 없이도 검증할 수 있는 **원장 핵심**부터 쌓고, �
 
 | # | 내용 | 영향 | 제안 |
 |---|------|------|------|
-| 1 | ~~`BaseTimeEntity`가 `LocalDateTime`을 사용~~ → **`Instant`로 변경 (2026-11-25)** | 감사 시각 | MySQL에서 실제 컬럼 타입(DATETIME(6) 여부)은 아직 미확인 — 첫 MySQL 실행 때 확인 |
+| 1 (#11) | ~~`BaseTimeEntity`가 `LocalDateTime`을 사용~~ → **`Instant`로 변경 (2026-11-25)** | 감사 시각 | MySQL에서 실제 컬럼 타입(DATETIME(6) 여부)은 아직 미확인 — 첫 MySQL 실행 때 확인 |
 | 2 | ~~Spring Boot 4.2.0 vs 기획의 3.x~~ → **4.2 유지로 결정 (2026-11-25)** | 의존성마다 Boot 4 호환 버전을 골라야 함 | 의존성을 추가할 때 문서로 호환성 확인 |
-| 3 | 마이그레이션 도구 없음 (`ddl-auto: update`) | 이름·타입 변경이 조용히 반영되지 않음 | 원장 스키마가 확정되면 Flyway 도입을 검토 |
+| 3 (#12) | 마이그레이션 도구 없음 (`ddl-auto: update`) | 이름·타입 변경이 조용히 반영되지 않음 | 원장 스키마가 확정되면 Flyway 도입을 검토 |
 | 4 | 테스트가 `contextLoads()` 하나뿐 | 동작 검증 수단이 없음 | 1단계부터 순수 단위 테스트 작성 |
 | 5 | H2로 테스트 | MySQL 락, DECIMAL, `DATETIME(6)` 미검증 | 5단계에서 Testcontainers(MySQL, Redis, Kafka) 도입 |
-| 6 | 금액 JSON 직렬화 방식 미결정 (REST) | JS 대시보드에서 정밀도 손실 가능 | 첫 금액 API를 만들 때 결정 (Kafka 메시지는 문자열로 확정) |
+| 6 (#13) | 금액 JSON 직렬화 방식 미결정 (REST) | JS 대시보드에서 정밀도 손실 가능 | 첫 금액 API를 만들 때 결정 (Kafka 메시지는 문자열로 확정) |
 | 7 | Spring Security 없음 | 모든 엔드포인트가 공개 상태 | 인증 방식이 결정되면 도입 (Q8). 그 전에는 userId를 요청 파라미터나 헤더로 대신 받음 |
