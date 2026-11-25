@@ -20,11 +20,11 @@
 | 컬럼 | 타입 | 비고 |
 |------|------|------|
 | id | BIGINT PK | |
-| user_id | BIGINT | 시스템 계정이면 NULL (Q2-B를 택할 경우) |
+| user_id | BIGINT | 시스템 계정이면 NULL |
 | currency | VARCHAR(3) | `CurrencyCode` enum: KRW, USD, JPY, EUR |
 | balance | DECIMAL(19,4) | 원장 잔액의 **캐시**. 진실의 원천은 ledger_entries |
 | version | BIGINT | `@Version` 낙관적 락 |
-| type | VARCHAR(20) | USER / SYSTEM_FX_POSITION / SYSTEM_SPREAD_REVENUE (Q2-B를 택할 경우) |
+| type | VARCHAR(20) | USER / SYSTEM_FX_POSITION / SYSTEM_SPREAD_REVENUE |
 
 - UNIQUE 제약: `(user_id, currency)`
 - 잔액은 엔티티 메서드 `debit(amount)`와 `credit(amount)`로만 바꿉니다. `debit` 결과가 음수가 되면 `BusinessException(INSUFFICIENT_BALANCE)`을 던집니다. 단, 시스템 계정은 음수를 허용할 수 있습니다(포지션 계정).
@@ -46,11 +46,13 @@
 - **append-only**입니다. 엔티티에 변경 메서드를 두지 않고, 리포지토리에서 delete를 호출하지 않습니다.
 - 인덱스: `(account_id, id)`(계좌별 내역 cursor 페이지네이션), `(tx_group_id)`
 
-### Q2: 원장의 엄격도 — 결정 필요
+### Q2: 원장의 엄격도 — **B로 결정 (2026-11-25)**
+
+아래 두 안을 비교한 뒤 **(B)**를 택했습니다. (A)는 비교 기록으로 남겨 둡니다.
 
 **USD 100 매수(적용환율 1,365, 기준율 1,350, 스프레드 수익 1,500원) 예시**
 
-**(A) 기획 원안: 사용자 계좌 쌍**
+**(A) 기획 원안: 사용자 계좌 쌍 — 채택하지 않음**
 
 | account | currency | type | amount |
 |---------|----------|------|--------|
@@ -61,7 +63,7 @@
 - 대신 통화가 다른 두 줄이라, **같은 통화 안에서 차변 = 대변 검증이 성립하지 않습니다.** 스프레드 수익이 어디에도 기록되지 않습니다.
 - 대사는 "Σ(KRW 엔트리) = KRW 잔액 합계" 수준까지만 가능합니다.
 
-**(B) 권장: 시스템 계정을 포함한 통화별 균형**
+**(B) 채택: 시스템 계정을 포함한 통화별 균형**
 
 | account | currency | type | amount |
 |---------|----------|------|--------|
