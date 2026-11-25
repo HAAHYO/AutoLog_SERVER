@@ -92,7 +92,7 @@ web-engineer:
 
 1. `_workspace/` 노트를 모두 읽고 최종 요약을 작성합니다(아래 형식).
 2. 커밋은 **사용자가 요청한 경우에만** `git-commit-convention`에 따라 리더가 합니다.
-3. 푸시와 PR 생성은 사용자에게 확인한 뒤 `github-pr-author`에 따라 진행합니다.
+3. 푸시와 PR 생성은 사용자에게 확인한 뒤 `github-pr-author`에 따라 진행하고, PR을 만든 직후 `pr-self-review`를 실행합니다.
 4. `_workspace/`는 지우지 않습니다. 다음 부분 재실행의 입력으로 쓰입니다(`.gitignore`에 포함되어 있음).
 
 ## 에러 처리
