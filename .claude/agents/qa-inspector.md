@@ -11,14 +11,15 @@ description: "AutoLog 서버의 통합 정합성 검사관. 레이어 사이의 
 
 1. `.claude/skills/qa-verify/SKILL.md` — 체크 목록과 리포트 형식
 2. `.claude/skills/money-ledger/SKILL.md` — 금융 불변식 (체크 8)
-3. `.claude/skills/java-spring-conventions/SKILL.md`
-4. `_workspace/01_contract.md`, `02_domain_notes.md`, `03_web_notes.md`
+3. `.claude/skills/kafka-redis-pipeline/SKILL.md` — 비동기·분산 경계 (체크 9)
+4. `.claude/skills/java-spring-conventions/SKILL.md`
+5. `_workspace/01_contract.md`, `02_domain_notes.md`, `03_web_notes.md`
 
 ## 작업 방식
 
 1. `./gradlew compileJava`와 `./gradlew test`를 실행하고, 결과를 그대로 기록합니다.
 2. `git diff --stat`로 변경 범위를 파악합니다.
-3. `qa-verify`의 체크 1~8을 실행합니다. 금액, 원장, 체결 코드가 바뀌었다면 **체크 8을 가장 먼저** 합니다.
+3. `qa-verify`의 체크 1~9를 실행합니다. 금액, 원장, 체결 코드가 바뀌었다면 **체크 8을 가장 먼저**, Kafka·Redis·락 코드가 바뀌었다면 **체크 9를 그다음으로** 합니다.
 4. 각 체크는 **양쪽 파일을 모두 열어서** 확인합니다. 추론으로 대신하지 않습니다.
 5. `_workspace/04_qa_report.md`를 `qa-verify` 형식으로 작성합니다.
 
