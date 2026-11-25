@@ -22,6 +22,7 @@ description: "AutoLog 서버 엔드포인트를 구현하기 전에 HTTP 계약�
 **Request**
 - Path: `orderId: Long`
 - Query: `status: OrderStatus` (선택)
+- Header: `Idempotency-Key: UUID` (돈이 움직이는 POST라면 필수)
 - Body: `OrderCreateRequest(targetCurrency: CurrencyCode @NotNull, krwAmount: BigDecimal @NotNull @Positive, ...)`
 
 **Success**
@@ -68,7 +69,7 @@ description: "AutoLog 서버 엔드포인트를 구현하기 전에 HTTP 계약�
 | 400 | 형식이 잘못된 입력 | `@Valid` 실패 → `INVALID_INPUT` (자동) |
 | 404 | 대상이 없음 | `<DOMAIN>_NOT_FOUND` |
 | 409 | 현재 상태와 충돌 | 예: `ORDER_NOT_PENDING`, `DUPLICATE_IDEMPOTENCY_KEY` |
-| 422 | 입력은 맞지만 비즈니스 규칙 위반 | 예: `INSUFFICIENT_BALANCE` |
+| 422 | 입력은 맞지만 비즈니스 규칙 위반 | 예: `INSUFFICIENT_BALANCE`, `IDEMPOTENCY_KEY_REUSED`(같은 키에 다른 본문) |
 | 500 | 설계하지 않은 실패 | 계약에 **절대 넣지 않습니다** |
 
 **400과 409, 422를 구분하세요.**
@@ -87,6 +88,19 @@ description: "AutoLog 서버 엔드포인트를 구현하기 전에 HTTP 계약�
 4. **금액과 환율 필드는 `BigDecimal`입니다.** 계약에 scale(소수 자릿수)도 적습니다. JSON 직렬화 형식(숫자/문자열)은 `java-spring-conventions`의 결정을 따릅니다.
 5. **시각 필드는 `Instant`(ISO-8601 UTC)입니다.**
 6. 엔티티를 그대로 투영하지 않는 형태가 필요하면 응답 record 안에 중첩 record로 정의합니다.
+
+## 멱등성 키
+
+- 돈이 움직이는 요청(즉시 환전, 주문 등록, 충전)은 `Idempotency-Key` 헤더를 **필수**로 받습니다. 계약의 Request에 적습니다.
+- 실패 표에는 다음 세 행을 항상 넣습니다.
+
+  | 조건 | ErrorCode | 상태 |
+  |------|-----------|------|
+  | 헤더 누락 | `IDEMPOTENCY_KEY_MISSING` | 400 |
+  | 같은 키로 처리 중 | `IDEMPOTENCY_KEY_IN_PROGRESS` | 409 |
+  | 같은 키에 다른 본문 | `IDEMPOTENCY_KEY_REUSED` | 422 |
+
+- 같은 키와 같은 본문으로 다시 요청하면 **처음 응답(상태 코드와 본문)을 그대로** 반환합니다. Notes에 이 사실을 적습니다.
 
 ## 페이지네이션
 
