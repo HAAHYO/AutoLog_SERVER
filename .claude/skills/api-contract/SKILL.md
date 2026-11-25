@@ -102,6 +102,16 @@ description: "AutoLog 서버 엔드포인트를 구현하기 전에 HTTP 계약�
 
 - 같은 키와 같은 본문으로 다시 요청하면 **처음 응답(상태 코드와 본문)을 그대로** 반환합니다. Notes에 이 사실을 적습니다.
 
+## SSE 엔드포인트
+
+SSE는 일반 JSON 응답과 계약 형식이 다릅니다. 다음 항목을 적습니다.
+
+- 경로, `produces = text/event-stream`
+- 이벤트 이름(`event:`)과 데이터 형식. 금액과 환율은 문자열로 보냅니다.
+- 연결 직후 초기 이벤트, heartbeat 주기, 타임아웃, 재연결 시 `Last-Event-ID` 처리 여부
+
+예: `GET /api/v1/rates/stream` → `event: rate`, `data: {"currency":"USD","baseRate":"1350.25","observedAt":"..."}`
+
 ## 페이지네이션
 
 목록이 계속 늘어나는 리소스(주문 내역, 원장 엔트리, 환율 이력)는 처음부터 페이지네이션을 설계합니다. 형식은 첫 목록 API를 만들 때 정합니다(offset 또는 cursor). 원장이나 환율 이력처럼 데이터가 많이 쌓이는 경우에는 cursor(`id` 기준)를 권장합니다.
