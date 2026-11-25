@@ -28,7 +28,7 @@ public class LedgerReconciliationService {
 
 	/**
 	 * 사용자 계좌는 원장 합계 = accounts.balance = 마지막 balance_after 여야 일치로 본다.
-	 * 시스템 계좌는 잔액을 캐시하지 않으므로 원장 합계만 보고한다.
+	 * 시스템 계좌는 잔액을 캐시하지 않으므로 원장 합계만 보고하고, matched는 null(비교 불가)로 둔다.
 	 */
 	public AccountReconciliation reconcileAccount(Long accountId) {
 		Account account = accountRepository.findById(accountId)
@@ -36,7 +36,7 @@ public class LedgerReconciliationService {
 		BigDecimal ledgerBalance = ledgerEntryRepository.sumNetByAccountId(accountId, EntryType.CREDIT);
 
 		if (!account.getType().isUser()) {
-			return new AccountReconciliation(accountId, account.getType(), null, ledgerBalance, null, true);
+			return new AccountReconciliation(accountId, account.getType(), null, ledgerBalance, null, null);
 		}
 		BigDecimal lastBalanceAfter = ledgerEntryRepository.findTopByAccountIdOrderByIdDesc(accountId)
 				.map(LedgerEntry::getBalanceAfter)
