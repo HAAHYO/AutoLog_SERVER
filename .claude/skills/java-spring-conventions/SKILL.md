@@ -222,7 +222,9 @@ throw new BusinessException(ErrorCode.INVALID_INPUT, "지정가는 0보다 커�
   | 409 | 현재 상태와 충돌함 (이미 체결된 주문 취소, 중복 멱등키) |
   | 422 | 입력은 올바르지만 비즈니스 규칙에 맞지 않음 (잔액 부족 등) |
 
-  `422`는 처음 필요해질 때 `ErrorCode`에 추가합니다.
+  422는 `HttpStatus.UNPROCESSABLE_CONTENT`를 씁니다(Spring 7에서 `UNPROCESSABLE_ENTITY`의 새 이름).
+- 동시 수정 충돌(`@Version`, 락 대기 실패·데드락)은 직접 잡지 않아도 `GlobalExceptionHandler`가 `CONCURRENT_UPDATE`(C004, 409)로 바꿉니다. 재시도할 수 있는 실패라서 500으로 두지 않습니다.
+- 5xx `ErrorCode`(예: `LEDGER_UNBALANCED`)로 던진 예외는 상세 메시지를 로그로만 남기고, 응답에는 기본 메시지만 내보냅니다.
 
 ## 리포지토리
 

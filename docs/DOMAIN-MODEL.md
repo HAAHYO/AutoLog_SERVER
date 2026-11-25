@@ -1,6 +1,6 @@
 # 도메인 모델
 
-> **상태: 설계 초안, 아직 구현되지 않았습니다.** 기획 원안(`docs/PRODUCT.md`의 "핵심 테이블")을 바탕으로 구체화했습니다. 첫 구현 때 이 문서를 실제 코드에 맞게 고치고, 이후에는 **코드가 진실**입니다.
+> **상태:** `accounts`, `ledger_entries`는 **구현됨**(2026-11-25, 아래 표는 실제 엔티티와 같음). 나머지는 설계 초안입니다. 이 문서와 코드가 다르면 **코드가 진실**이며, 문서를 고칩니다.
 
 ## 도메인 패키지
 
@@ -20,30 +20,46 @@
 | 컬럼 | 타입 | 비고 |
 |------|------|------|
 | id | BIGINT PK | |
-| user_id | BIGINT | 시스템 계정이면 NULL |
+| user_id | BIGINT NULL | 시스템 계좌면 NULL |
+| owner_key | VARCHAR(40) | `USER:<userId>` 또는 `SYSTEM`. 유니크 제약용 (NULL 문제 회피) |
 | currency | VARCHAR(3) | `CurrencyCode` enum: KRW, USD, JPY, EUR |
 | balance | DECIMAL(19,4) | 원장 잔액의 **캐시**. 진실의 원천은 ledger_entries |
 | version | BIGINT | `@Version` 낙관적 락 |
-| type | VARCHAR(20) | USER / SYSTEM_FX_POSITION / SYSTEM_SPREAD_REVENUE |
+| type | VARCHAR(30) | USER / SYSTEM_FX_POSITION / SYSTEM_SPREAD_REVENUE / SYSTEM_EXTERNAL_CLEARING(충전·출금) |
+| created_at, updated_at | DATETIME(6) | `BaseTimeEntity` (UTC `Instant`) |
 
-- UNIQUE 제약: `(user_id, currency)`
-- 잔액은 엔티티 메서드 `debit(amount)`와 `credit(amount)`로만 바꿉니다. `debit` 결과가 음수가 되면 `BusinessException(INSUFFICIENT_BALANCE)`을 던집니다. 단, 시스템 계정은 음수를 허용할 수 있습니다(포지션 계정).
+- UNIQUE 제약: `(owner_key, currency, type)`. `user_id`로 걸면 시스템 계좌(NULL)의 중복을 막지 못해서(MySQL은 NULL끼리 다르다고 봄), NULL이 아닌 `owner_key`를 둡니다.
+- 잔액은 엔티티 메서드 `debit(amount)`와 `credit(amount)`로만 바꿉니다. 사용자 계좌에서 `debit` 결과가 음수가 되면 `BusinessException(INSUFFICIENT_BALANCE)`(422)를 던집니다.
+- **시스템 계좌는 잔액을 캐시하지 않습니다.** `balance`는 0으로 유지되고, 잔액은 원장 합계로만 계산합니다(체결마다 같은 행을 갱신하는 락 경합을 피하기 위해). 음수 포지션도 허용합니다.
+
+## ledger_tx_groups — 거래 묶음 헤더
+
+| 컬럼 | 타입 | 비고 |
+|------|------|------|
+| tx_group_id | VARCHAR(36) PK | 같은 거래의 동시 중복 기록을 기본키 위반으로 막음 |
+| created_at | DATETIME(6) | UTC |
+
+`LedgerService.post()`가 엔트리보다 먼저 INSERT합니다. 중복이면 `LEDGER_DUPLICATE_TX_GROUP`(409)입니다.
 
 ## ledger_entries — 핵심 테이블
 
 | 컬럼 | 타입 | 비고 |
 |------|------|------|
 | id | BIGINT PK | |
-| tx_group_id | VARCHAR(36) 또는 BIGINT | 환전 한 건 = 그룹 하나 |
+| tx_group_id | VARCHAR(36) | 경제적 사건 하나 = 그룹 하나. 호출부가 정함(예: UUID, `order:{id}:execute`) |
 | account_id | BIGINT | |
-| currency | VARCHAR(3) | 원안에는 없지만 **추가 권장**. accounts를 조인하지 않고도 통화별 합계와 대사를 할 수 있음 |
+| currency | VARCHAR(3) | 원안에 없던 컬럼(추가함). accounts를 조인하지 않고도 통화별 합계와 대사를 할 수 있음 |
 | entry_type | VARCHAR(6) | DEBIT / CREDIT |
 | amount | DECIMAL(19,4) | 항상 > 0 |
-| balance_after | DECIMAL(19,4) | 이 엔트리를 반영한 뒤의 계좌 잔액 |
-| applied_rate | DECIMAL(19,8) | 적용 환율 |
+| balance_after | DECIMAL(19,4) NULL | 이 엔트리를 반영한 뒤의 계좌 잔액. 시스템 계좌는 NULL |
+| applied_rate | DECIMAL(19,8) NULL | 적용환율. 환전이 아닌 거래는 NULL |
 | created_at | DATETIME(6) | UTC |
 
-- **append-only**입니다. 엔티티에 변경 메서드를 두지 않고, 리포지토리에서 delete를 호출하지 않습니다.
+- **append-only**입니다. 엔티티에 변경 메서드를 두지 않고(모든 컬럼 `updatable = false`), 리포지토리에서 delete를 호출하지 않습니다.
+- 기록은 `TxGroup.builder(...).debit(...).credit(...).build()`로 묶음을 만들고 `LedgerService.post()`로 전기합니다. `build()`에서 통화별 균형을 검증하고, `post()`에서 계좌 통화 일치를 확인하며 사용자 잔액과 `balance_after`를 같은 트랜잭션에서 갱신합니다.
+- `post()`는 계좌 UPDATE를 엔트리 INSERT보다 먼저 flush합니다(외래키 공유 락으로 인한 MySQL 데드락 방지, `hibernate.order_updates=true`로 id 순서). 같은 계좌를 동시에 갱신하면 늦은 쪽이 `@Version` 충돌로 실패하고, 이는 `CONCURRENT_UPDATE`(409, 재시도 가능)로 응답합니다.
+- 잔액 부족 검사는 거래 묶음의 순변화가 아니라 **라인 순서대로** 합니다. 한 묶음 안에서도 잔액이 한순간이라도 음수가 되는 순서를 허용하지 않는 보수적인 설계입니다. 같은 계좌를 출금 후 입금하는 묶음이 필요하면 입금 라인을 먼저 둡니다.
+- 대사: `LedgerReconciliationService.reconcileAccount()`(사용자 계좌의 원장 합계 = balance = 마지막 balance_after, 시스템 계좌는 `matched = null`로 비교 불가), `verifyCurrencyBalances()`(통화별 전체 Σ DEBIT = Σ CREDIT)
 - 인덱스: `(account_id, id)`(계좌별 내역 cursor 페이지네이션), `(tx_group_id)`
 
 ### Q2: 원장의 엄격도 — **B로 결정 (2026-11-25)**
