@@ -15,6 +15,12 @@ public class GlobalExceptionHandler {
 	@ExceptionHandler(BusinessException.class)
 	public ResponseEntity<ErrorResponse> handleBusinessException(BusinessException e) {
 		ErrorCode errorCode = e.getErrorCode();
+		if (errorCode.getStatus().is5xxServerError()) {
+			// 5xx는 내부 불변식 위반(버그)이므로 상세 메시지는 로그에만 남기고 응답에는 기본 메시지만 준다.
+			log.error("Business invariant violated: {} - {}", errorCode.getCode(), e.getMessage(), e);
+			return ResponseEntity.status(errorCode.getStatus())
+					.body(ErrorResponse.of(errorCode));
+		}
 		return ResponseEntity.status(errorCode.getStatus())
 				.body(ErrorResponse.of(errorCode, e.getMessage()));
 	}
