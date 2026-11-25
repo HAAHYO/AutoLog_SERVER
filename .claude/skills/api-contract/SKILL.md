@@ -22,7 +22,7 @@ description: "AutoLog 서버 엔드포인트를 구현하기 전에 HTTP 계약�
 **Request**
 - Path: `orderId: Long`
 - Query: `status: OrderStatus` (선택)
-- Body: `OrderCreateRequest(fromCurrency: CurrencyCode @NotNull, amount: BigDecimal @NotNull @Positive, ...)`
+- Body: `OrderCreateRequest(targetCurrency: CurrencyCode @NotNull, krwAmount: BigDecimal @NotNull @Positive, ...)`
 
 **Success**
 - Status: `201 CREATED`
