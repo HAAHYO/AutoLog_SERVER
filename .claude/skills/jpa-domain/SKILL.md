@@ -33,6 +33,7 @@ description: "AutoLog 서버의 JPA 엔티티·리포지토리·서비스 구현
 
 ## 리포지토리 쿼리
 
+- 동적 조건 검색은 QueryDSL(도입 후)로 합니다. 구조는 `java-spring-conventions`의 QueryDSL 절을 따릅니다.
 - 파생 쿼리 메서드명을 우선 씁니다. 메서드명은 **컨텍스트가 뜰 때** 검증되므로, `compileJava` 성공만으로는 쿼리가 맞는지 알 수 없습니다. 반드시 `./gradlew test`(컨텍스트 부팅)로 확인합니다.
 - `@Query`를 쓸 때는 다음을 지킵니다.
   - JPQL에는 테이블·컬럼명이 아니라 **엔티티·필드명**을 씁니다.
