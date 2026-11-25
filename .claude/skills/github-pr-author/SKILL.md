@@ -99,7 +99,7 @@ gh pr create --base develop --head "$(git branch --show-current)" \
 ```
 
 - 제목 형식은 커밋 규칙과 같은 `<type>: <한국어 요약>`이고, type은 PR의 주된 변경을 따릅니다.
-- 생성한 뒤에는 PR URL을 사용자에게 알려줍니다.
+- 생성한 뒤에는 **곧바로 `pr-self-review` 스킬을 실행합니다**(사용자 요청이 없어도). 리뷰와 반영을 마친 뒤 PR URL과 리뷰 결과를 사용자에게 알려줍니다.
 
 ## 병합 (요청 시)
 
