@@ -27,7 +27,7 @@
 
 | 에이전트 | 역할 | 스킬 |
 |----------|------|------|
-| (리더) | 요구사항 정리, API 계약 작성, 통합, 빌드, 커밋/PR | `autolog-orchestrator`, `api-contract`, `git-commit-convention`, `github-pr-author` |
+| (리더) | 요구사항 정리, API 계약 작성, 통합, 빌드, 커밋/PR, 셀프 리뷰 | `autolog-orchestrator`, `api-contract`, `git-commit-convention`, `github-pr-author`, `pr-self-review` |
 | `domain-engineer` | 엔티티, 리포지토리, 서비스, ErrorCode, 컨슈머, Redis, 락 Facade | `jpa-domain`, `money-ledger`, `kafka-redis-pipeline` |
 | `web-engineer` | 컨트롤러, 요청/응답 DTO, SSE 엔드포인트 | `api-contract` |
 | `qa-inspector` | 레이어 간 교차 검증 (체크 1~9) | `qa-verify`, `money-ledger`, `kafka-redis-pipeline` |
@@ -47,13 +47,14 @@
 | `qa-verify` | 레이어 간 교차 검증 체크리스트 |
 | `git-commit-convention` | 커밋 단위와 메시지 규칙 |
 | `github-pr-author` | 셀프 PR 작성 |
+| `pr-self-review` | PR 생성 직후 셀프 코드 리뷰, 반영, 기록 (자동 실행) |
 
 ### 참고한 하네스와 다른 점
 
 `VOID-GSM/TaekBaeWatShong_SERVER`의 하네스를 개인 프로젝트에 맞게 줄였습니다.
 
 - **뺀 것:**
-  - 리뷰 코멘트 작성·응답 스킬 (리뷰어가 없음)
+  - 리뷰 코멘트 작성·응답 스킬 2개 → `pr-self-review` 하나로 합침 (리뷰어 = Claude 자신)
   - `api-designer`, `security-engineer`, `git-workflow-engineer` 에이전트
   - Discord 알림, SSH 배포
   - `.codex/` 스킬 사본
