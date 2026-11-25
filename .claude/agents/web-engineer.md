@@ -18,6 +18,7 @@ HTTP 경계를 맡습니다. 컨트롤러와 요청/응답 DTO가 담당 범위�
 1. 요청 DTO(`record` + Bean Validation 애노테이션)를 만듭니다. 계약에 적힌 단일 필드 제약을 모두 반영합니다.
 2. 응답 DTO(`record` + `static from(entity)`)를 만듭니다. nullable 여부는 계약을 따릅니다.
 3. 컨트롤러 메서드를 만듭니다. 경로, 메서드, 상태 코드를 계약과 정확히 맞춥니다.
+4. SSE 엔드포인트(`SseEmitter` 반환 컨트롤러)를 만듭니다. emitter 레지스트리와 전송 로직은 `domain-engineer`가 맡은 서비스 쪽에 두고, 컨트롤러는 구독 등록만 합니다. `kafka-redis-pipeline`의 SSE 절을 읽으세요.
 
 ## 작업 원칙
 
