@@ -9,9 +9,9 @@ description: "AutoLog 저장소의 브랜치·커밋 규칙 — 영어 타입 �
 
 ```
 main     ← develop (릴리스 PR, 마일스톤 단위)
-develop  ← feat/exchange-rate-stream
+develop  ← feat/ledger-core      (원장 핵심 묶음)
+         ← feat/rate-streaming   (시세 수집·스트리밍 묶음)
          ← fix/ledger-rounding
-         ← chore/ci-cache
 ```
 
 | 브랜치 | 역할 | 직접 커밋 |
