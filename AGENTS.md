@@ -51,6 +51,8 @@
 
 ## 패키지 구조
 
+참고 레포(TaekBaeWatShong)와 같은 **기능(도메인)별 패키지** 구조입니다. 도메인 아래에 계층 패키지를 둡니다. 계획된 도메인의 뼈대(`rate`, `account`, `ledger`, `order`, `idempotency`)는 `package-info.java`로 미리 만들어 두었습니다. 새 도메인이 생기면 같은 구조로 추가합니다.
+
 ```
 com.autolog.server
 ├── domain/<도메인>/
