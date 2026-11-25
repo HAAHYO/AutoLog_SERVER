@@ -65,3 +65,7 @@ out/
 ### Env / secrets ###
 .env
 application-secret.yml
+
+### AI harness workspace ###
+_workspace/
+_workspace_*/
