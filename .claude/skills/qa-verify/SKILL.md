@@ -40,7 +40,7 @@ git diff --stat main...HEAD    # 변경 범위
 
 - `from()`이 record의 모든 컴포넌트를 채우는지 확인합니다.
 - 각 필드에 대해 "어떤 상태에서 null일 수 있는가?"를 엔티티 상태 머신과 대조합니다. 계약에서 non-null이라고 했는데 실제로 null이 나갈 수 있다면 결함입니다.
-- 엔티티가 응답에 그대로 노출되지 않는지 확인합니다(`ResponseEntity<ExchangeOrder>` 같은 형태 금지).
+- 엔티티가 응답에 그대로 노출되지 않는지 확인합니다(`ResponseEntity<FxOrder>` 같은 형태 금지).
 
 ### 4. 던지는 예외 ↔ 계약 실패 표
 
@@ -96,7 +96,7 @@ git diff --stat main...HEAD    # 변경 범위
 ## 확인함
 | # | 체크 | 결과 | 근거 |
 |---|------|------|------|
-| 1 | Controller ↔ Service | PASS | ExchangeOrderController.java:31 → ExchangeOrderService.java:48, 둘 다 OrderResponse |
+| 1 | Controller ↔ Service | PASS | FxOrderController.java:31 → FxOrderService.java:48, 둘 다 OrderResponse |
 
 ## 발견 사항
 ### [BLOCKER] <한 줄 결함>
