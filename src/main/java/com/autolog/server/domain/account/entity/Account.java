@@ -22,11 +22,14 @@ import lombok.NoArgsConstructor;
 @Entity
 @Table(
 		name = "accounts",
-		uniqueConstraints = @UniqueConstraint(name = "uk_accounts_user_currency_type", columnNames = {"user_id", "currency", "type"})
+		uniqueConstraints = @UniqueConstraint(name = "uk_accounts_owner_currency_type", columnNames = {"owner_key", "currency", "type"})
 )
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Account extends BaseTimeEntity {
+
+	private static final String SYSTEM_OWNER_KEY = "SYSTEM";
+	private static final String USER_OWNER_KEY_PREFIX = "USER:";
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -35,6 +38,13 @@ public class Account extends BaseTimeEntity {
 	/** 시스템 계좌는 null */
 	@Column(name = "user_id")
 	private Long userId;
+
+	/**
+	 * 유니크 제약용 소유자 키. 사용자 계좌는 {@code USER:<userId>}, 시스템 계좌는 {@code SYSTEM}.
+	 * user_id만으로는 시스템 계좌(NULL)의 중복을 막을 수 없어서 둔다(MySQL 유니크 키는 NULL끼리 다르다고 본다).
+	 */
+	@Column(name = "owner_key", nullable = false, updatable = false, length = 40)
+	private String ownerKey;
 
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false, length = 3)
@@ -53,6 +63,7 @@ public class Account extends BaseTimeEntity {
 
 	private Account(Long userId, CurrencyCode currency, AccountType type) {
 		this.userId = userId;
+		this.ownerKey = userId == null ? SYSTEM_OWNER_KEY : USER_OWNER_KEY_PREFIX + userId;
 		this.currency = currency;
 		this.type = type;
 		this.balance = BigDecimal.ZERO;
