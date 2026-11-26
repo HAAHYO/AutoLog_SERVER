@@ -161,7 +161,7 @@ com.autolog.server
 | `chore` | 빌드 설정, 의존성, CI, 기타 잡일 |
 | `init` | 프로젝트 초기화 |
 
-- **커밋 하나에는 관심사 하나만** 담습니다. 요약에 "및"이 들어가야 한다면 커밋을 나눕니다.
+- **커밋은 의미 있는 작업 단위**로 합니다(기능 조각 하나, 결정 하나, 리뷰 반영 묶음). 파일마다 쪼개지 않고, 테스트는 그 코드와 같은 커밋에 넣습니다. PR 하나에 5~15개가 목표입니다. 서로 무관한 변경은 섞지 않습니다.
 - 각 커밋이 단독으로 컴파일되도록 **의존 순서대로** 커밋합니다: entity → repository → ErrorCode → service → DTO → controller → test/docs/chore
 - `git add -A`와 `git add .`는 금지입니다. 경로를 지정해서 스테이징하고, 커밋 전에 `git diff --staged`를 확인합니다.
 - 푸시된 커밋에 amend나 force-push를 하지 않습니다. `--no-verify`도 쓰지 않습니다.
@@ -171,7 +171,7 @@ com.autolog.server
 - 기능 브랜치는 PR로 **`develop`**에 병합합니다(`--base develop`). CI 기록을 남기고 셀프 리뷰를 하는 것이 목적입니다.
 - `develop` → `main` 릴리스 PR은 마일스톤이 끝났을 때 **사용자가 요청하면** 만듭니다.
 - PR은 `.github/PULL_REQUEST_TEMPLATE.md` 양식으로 작성하고, 체크리스트는 **실제로 확인한 항목만** 체크합니다.
-- 병합은 **Merge commit**으로 합니다. 잘게 나눈 커밋 기록을 남기기 위해서입니다. squash는 쓰지 않습니다.
+- 병합은 **Merge commit**으로 합니다. 작업 단위로 나눈 커밋 기록을 남기기 위해서입니다. squash는 쓰지 않습니다.
 - **PR을 만든 직후에는 항상 셀프 리뷰를 합니다**(`.claude/skills/pr-self-review/SKILL.md`). 리뷰 결과를 판단해 반영하거나 이유를 남기고, 결과는 PR 본문의 "🔍 셀프 리뷰"에 기록합니다. 머지는 사용자가 요청할 때만 합니다.
 
 ### 확인이 필요한 작업

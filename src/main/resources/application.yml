@@ -21,3 +21,16 @@ management:
     web:
       exposure:
         include: health, info
+
+# 시세 스트리밍(feat/rate-streaming) 전까지 쓰는 고정 시세. 기준율은 통화의 고시 단위당 원화(JPY는 100엔당).
+fx:
+  rate:
+    base-rates:
+      USD: "1350.00"
+      JPY: "905.12"
+      EUR: "1480.00"
+    spread-rates:
+      USD: "0.0175"
+      JPY: "0.0175"
+      EUR: "0.0199"
+    default-preferential-rate: "0"

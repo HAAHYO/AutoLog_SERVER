@@ -29,6 +29,8 @@ import lombok.NoArgsConstructor;
 public class Account extends BaseTimeEntity {
 
 	private static final String SYSTEM_OWNER_KEY = "SYSTEM";
+	/** balance 컬럼 DECIMAL(19,4)이 담을 수 있는 최대값 (정수부 15자리) */
+	public static final BigDecimal MAX_BALANCE = new BigDecimal("999999999999999.9999");
 	private static final String USER_OWNER_KEY_PREFIX = "USER:";
 
 	@Id
@@ -110,7 +112,11 @@ public class Account extends BaseTimeEntity {
 		if (!type.isUser()) {
 			return null;
 		}
-		balance = balance.add(amount);
+		BigDecimal next = balance.add(amount);
+		if (next.compareTo(MAX_BALANCE) > 0) {
+			throw new BusinessException(ErrorCode.BALANCE_LIMIT_EXCEEDED);
+		}
+		balance = next;
 		return balance;
 	}
 

@@ -137,7 +137,10 @@ public record OrderListResponse(List<OrderResponse> orders) {
 - **컬렉션 응답은 감싸서 반환합니다.** `OrderListResponse(List<OrderResponse> orders)`처럼 만들고, 배열을 그대로 반환하지 않습니다. 이렇게 해야 나중에 `totalCount`나 페이지 정보를 추가해도 클라이언트가 깨지지 않습니다.
 - 응답의 nullable 여부는 실제 엔티티 상태를 따릅니다. 예를 들어 PENDING 주문의 `executedAt`은 null입니다.
 - JSON 필드명은 record 컴포넌트명(camelCase)을 그대로 씁니다. 네이밍 전략은 설정하지 않았습니다.
-- 금액(`BigDecimal`)이 JSON 숫자로 나가면 클라이언트(JS)에서 정밀도가 손실될 수 있습니다. 직렬화 방식(문자열 또는 숫자)은 첫 금액 API를 만들 때 정하고, 정한 내용을 이 파일에 기록합니다. **아직 미결정입니다.**
+- **금액·환율(`BigDecimal`)은 JSON에서 문자열로 주고받습니다**(2026-11-25 결정, #13). 예: `"amount": "136500"`, `"appliedRate": "1365.00000000"`. JS 클라이언트가 숫자를 double로 읽으면서 정밀도가 깨지는 것을 막기 위해서입니다.
+  - 응답: 전역 Jackson 설정으로 모든 `BigDecimal`을 문자열로 직렬화합니다. 필드마다 `@JsonFormat`을 붙이지 않습니다.
+  - 요청: 문자열 `"100.50"`을 받습니다. 숫자 `100.50`도 Jackson이 받아들이지만, 계약서와 클라이언트 예시는 항상 문자열로 적습니다.
+  - 지수 표기(`1E+3`)가 나가지 않도록 `toPlainString()` 형태로 내보냅니다.
 
 ## 컨트롤러
 

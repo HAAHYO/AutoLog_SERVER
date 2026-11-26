@@ -112,7 +112,7 @@ git switch develop && git pull
 ```
 
 - CI가 실패한 상태에서는 병합하지 않습니다. 실패 로그를 사용자에게 보여줍니다.
-- 병합 방식은 `--merge`(merge commit)입니다. 잘게 나눈 커밋 기록을 남기기 위해서이며, squash는 쓰지 않습니다.
+- 병합 방식은 `--merge`(merge commit)입니다. 작업 단위로 나눈 커밋 기록을 남기기 위해서이며, squash는 쓰지 않습니다.
 
 ## 릴리스 PR (develop → main, 요청 시)
 

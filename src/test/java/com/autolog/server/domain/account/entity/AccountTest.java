@@ -41,6 +41,18 @@ class AccountTest {
 	}
 
 	@Test
+	void 잔액이_컬럼_한도를_넘는_입금은_거부하고_잔액은_그대로다() {
+		Account account = Account.openUserAccount(1L, CurrencyCode.KRW);
+		account.credit(new BigDecimal("999999999999999"));
+
+		assertThatThrownBy(() -> account.credit(BigDecimal.ONE))
+				.isInstanceOf(BusinessException.class)
+				.extracting("errorCode")
+				.isEqualTo(ErrorCode.BALANCE_LIMIT_EXCEEDED);
+		assertThat(account.getBalance()).isEqualByComparingTo("999999999999999");
+	}
+
+	@Test
 	void 시스템_계좌는_잔액을_캐시하지_않고_출금을_막지_않는다() {
 		Account position = Account.openSystemAccount(AccountType.SYSTEM_FX_POSITION, CurrencyCode.USD);
 

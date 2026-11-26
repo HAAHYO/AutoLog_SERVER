@@ -1,6 +1,6 @@
 # 구현 현황 — 스펙 vs 코드
 
-> 기능을 추가하거나 바꿀 때마다 이 문서를 함께 갱신합니다. 마지막 갱신: 2026-11-25 (원장 핵심 구현)
+> 기능을 추가하거나 바꿀 때마다 이 문서를 함께 갱신합니다. 마지막 갱신: 2026-11-25 (충전·즉시 환전·멱등성)
 
 ## 현재 있는 것
 
@@ -11,11 +11,25 @@
 | JPA Auditing + `BaseTimeEntity` | `global/config`, `global/entity` | `createdAt`, `updatedAt` (`Instant`, UTC) |
 | 공통 예외 처리 | `global/exception` | `ErrorCode`, `BusinessException`, `ErrorResponse`, `GlobalExceptionHandler` |
 | 헬스 체크 | `GET /actuator/health` | |
-| 테스트 | 51개: 적용환율·반올림·계좌·TxGroup 단위 테스트, 원장 전기·대사 `@DataJpaTest`, `BaseTimeEntityTest` | 통합 테스트는 H2 기준 |
+| 테스트 | 65개: 단위(적용환율, 반올림, 계좌, TxGroup, 매수 계산), `@DataJpaTest`(원장, 계좌 유니크), API 통합(`ExchangeApiTest`) | 통합 테스트는 H2 기준 |
 | 원장 핵심 | `global/money`, `domain/account`, `domain/ledger`, `domain/rate/service/AppliedRateCalculator` | HTTP 엔드포인트 없음 (서비스 계층까지) |
 | CI | `.github/workflows/ci.yml` | develop·main 대상 PR과 푸시 시 `./gradlew build` |
 | 하네스 | `AGENTS.md`, `CLAUDE.md`, `.claude/` | |
-| 도메인 패키지 뼈대 | `domain/{rate,account,ledger,order,idempotency}` | `package-info.java`만 있음 (클래스 없음) |
+| 도메인 패키지 | `domain/{rate,account,ledger,order,idempotency}` | 기능별 패키지 구조 |
+| 사용자 식별 (임시) | `global/web/CurrentUserId` | 인증(Q8) 전까지 `X-User-Id` 헤더 |
+| 금액 JSON 직렬화 | `global/config/JacksonConfig` | `BigDecimal` → plain string (#13) |
+
+## API
+
+모든 API는 `X-User-Id` 헤더가 필요합니다(인증 전 임시). 금액과 환율은 JSON 문자열입니다.
+
+| Method | Path | 설명 | 헤더 | 성공 |
+|--------|------|------|------|------|
+| GET | `/api/v1/accounts` | 내 계좌 목록과 잔액 | X-User-Id | 200 |
+| POST | `/api/v1/accounts/deposits` | 모의 충전 (KRW) `{"amount":"50000"}` | X-User-Id, Idempotency-Key | 201 |
+| POST | `/api/v1/orders/market` | 시장가 매수 `{"targetCurrency":"USD","krwAmount":"136500"}` | X-User-Id, Idempotency-Key | 201 |
+
+주요 실패: 400(`C001` 입력, `U001` X-User-Id, `I001` Idempotency-Key, `O001` 통화), 409(`I002` 같은 키 처리 중, `C004` 동시 수정), 422(`A002` 잔액 부족, `A005` 잔액 한도 초과, `I003` 키 재사용, `O002` 금액 너무 작음), 503(`R002` 시세 없음)
 
 ## 기능 현황 (PRODUCT.md의 MVP 4단계)
 
@@ -28,15 +42,15 @@
 | ① | 외부 환율 API Collector | 미구현 | API 선정 |
 | ① | `fx-rate-topic` 발행/구독 → Redis 최신 시세 | 미구현 | Kafka, Redis |
 | ① | SSE 시세 스트림 | 미구현 | ① 시세 구독 |
-| ② | `accounts` (다통화 지갑, `@Version`) | **구현** (엔티티·리포지토리. 계좌 개설 API 없음) | — |
+| ② | `accounts` (다통화 지갑, `@Version`) | **구현** (조회 API, 첫 사용 시 자동 개설, 시스템 계좌 시드) | — |
 | ② | `ledger_entries` (tx_group, 통화별 균형 검증, balance_after) + 시스템 계정 | **구현** (`TxGroup`, `LedgerService.post`, 헤더 `ledger_tx_groups`) | 시스템 계좌 시드는 `feat/exchange` |
 | ② | 적용환율 계산 (스프레드, 우대율) | **구현** (`AppliedRateCalculator`, `FxRoundingPolicy`) | — |
-| ② | 충전 (모의) | 미구현 | Q9 |
-| ② | 즉시 환전 (MARKET) | 미구현 | accounts, ledger, 적용환율, 멱등성 키 |
+| ② | 충전 (모의) | **구현** (`POST /api/v1/accounts/deposits`, KRW만) | — |
+| ② | 즉시 환전 (MARKET) | **구현** (`POST /api/v1/orders/market`, 매수만. 시세는 설정값) | 매도는 Q7 |
 | ③ | 지정가 주문 등록 / 조회 (`fx_orders`) | 미구현 | Q3 분할, Q5 취소·만료 |
 | ③ | ZSet 매칭 엔진 → `fx-order-matched` | 미구현 | Redis, Kafka, ① 시세 |
 | ③ | 체결 컨슈머 | 미구현 | ②, ③, ④ 락 |
-| ④ | `idempotency_keys` + `Idempotency-Key` 처리 | 미구현 | Q10 |
+| ④ | `idempotency_keys` + `Idempotency-Key` 처리 | **구현** (사용자 범위 키, 실패 응답은 저장 안 함) | 보관 기간·정리(Q10) |
 | ④ | Redisson 계좌 락 + `@Version` | 미구현 | Redis |
 | ④ | DLQ, 재시도, FAILED 처리, 알림 | 미구현 | Kafka |
 | ④ | 대사(Reconciliation) 쿼리 / API | 쿼리·서비스 **구현** (`LedgerReconciliationService`), API 미구현 | — |
@@ -90,6 +104,6 @@ Kafka와 Redis 없이도 검증할 수 있는 **원장 핵심**부터 쌓고, �
 | 3 (#12) | 마이그레이션 도구 없음 (`ddl-auto: update`) | 이름·타입 변경이 조용히 반영되지 않음 | 원장 스키마가 확정되면 Flyway 도입을 검토 |
 | 4 | 테스트가 `contextLoads()` 하나뿐 | 동작 검증 수단이 없음 | 1단계부터 순수 단위 테스트 작성 |
 | 5 | H2로 테스트 | MySQL 락, DECIMAL, `DATETIME(6)` 미검증 | 5단계에서 Testcontainers(MySQL, Redis, Kafka) 도입 |
-| 6 (#13) | 금액 JSON 직렬화 방식 미결정 (REST) | JS 대시보드에서 정밀도 손실 가능 | 첫 금액 API를 만들 때 결정 (Kafka 메시지는 문자열로 확정) |
+| 6 (#13) | ~~금액 JSON 직렬화 방식 미결정~~ → **문자열로 결정 (2026-11-25)** | — | 전역 Jackson 설정은 `feat/exchange`에서 구현 |
 | 7 | Spring Security 없음 | 모든 엔드포인트가 공개 상태 | 인증 방식이 결정되면 도입 (Q8). 그 전에는 userId를 요청 파라미터나 헤더로 대신 받음 |
 | 8 | ~~시스템 계좌의 중복을 DB가 막지 못함~~ → **`owner_key` 유니크 제약으로 해결 (2026-11-25)** | — | — |
