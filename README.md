@@ -1,6 +1,3 @@
-# AutoLog_SERVER
-실시간 환율 스트리밍 및 복식부기 원장 기반 지정가 자동 환전 엔진 서비스
-
 ## 기술 스택
 - Java 17
 - Spring Boot 4.2 (Web MVC, Data JPA, Validation, Actuator)
